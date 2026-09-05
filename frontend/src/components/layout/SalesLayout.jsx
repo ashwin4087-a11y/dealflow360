@@ -44,7 +44,6 @@ export default function SalesLayout() {
     {
       label: "Revenue Intelligence",
       items: [
-        { label: "Deal Health Radar", path: "/intelligence", icon: Gauge },
         { label: "Deal Health Radar", path: "/intelligence/health", icon: Gauge },
         { label: "Deal Rescue", path: "/intelligence/rescue", icon: Zap },
         { label: "Customer Insights", path: "/intelligence/customer", icon: Users },
@@ -62,7 +61,15 @@ export default function SalesLayout() {
   ];
 
   const activePath = location.pathname;
-  const activeLabel = navGroups.flatMap((group) => group.items).find((item) => activePath.startsWith(item.path))?.label || "Core Sales";
+  
+  const isActive = (itemPath) => {
+    if (itemPath === "/sales/quotations") {
+      return activePath === "/sales/quotations" || activePath.startsWith("/sales/quotations/");
+    }
+    return activePath === itemPath;
+  };
+
+  const activeLabel = navGroups.flatMap((group) => group.items).find((item) => isActive(item.path))?.label || "Core Sales";
   const [expandedGroup, setExpandedGroup] = useState("Sales");
 
   return (
@@ -81,7 +88,7 @@ export default function SalesLayout() {
         
         <div className="nav-scroll" style={{ paddingTop: '1rem' }}>
           {navGroups.map((group) => {
-            const hasActive = group.items.some((item) => activePath.startsWith(item.path));
+            const hasActive = group.items.some((item) => isActive(item.path));
             const isExpanded = expandedGroup === group.label;
             return (
               <section key={group.label} className={`nav-group ${hasActive ? "has-active" : ""}`}>
@@ -90,11 +97,14 @@ export default function SalesLayout() {
                   {isExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
                 </button>
                 {isExpanded && <div className="nav-items">
-                  {group.items.map(({ label, path, icon: Icon }) => (
-                    <button key={`${label}-${path}`} className={`nav-item ${activePath.startsWith(path) ? "active" : ""}`} onClick={() => { navigate(path); setMobileNav(false); }}>
-                      <Icon size={16} /><span>{label}</span>
-                    </button>
-                  ))}
+                  {group.items.map(({ label, path, icon: Icon }) => {
+                    const active = isActive(path);
+                    return (
+                      <button key={`${label}-${path}`} className={`nav-item ${active ? "active" : ""}`} onClick={() => { navigate(path); setMobileNav(false); }}>
+                        <Icon size={16} /><span>{label}</span>
+                      </button>
+                    );
+                  })}
                 </div>}
               </section>
             );

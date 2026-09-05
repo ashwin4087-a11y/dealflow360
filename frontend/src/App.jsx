@@ -23,7 +23,7 @@ import InvoicesPage from './pages/InvoicesPage';
 import InvoiceDetailPage from './pages/InvoiceDetailPage';
 import SubscriptionsPage from './pages/SubscriptionsPage';
 import SubscriptionDetailPage from './pages/SubscriptionDetailPage';
-import IntelligencePage from './pages/intelligence/MockApp';
+import IntelligenceDashboard from './pages/intelligence/IntelligenceDashboard';
 import NegotiationPage from './pages/sales/NegotiationPage';
 import CustomerNegotiationPage from './pages/customer/CustomerNegotiationPage';
 
@@ -62,6 +62,14 @@ function App() {
               <Route index element={<NegotiationPage />} />
               <Route path=":negotiationId" element={<NegotiationPage />} />
             </Route>
+            
+            <Route path="/intelligence" element={<ProtectedRoute allowedRoles={["ADMIN", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
+              <Route index element={<IntelligenceDashboard />} />
+              <Route path="health" element={<IntelligenceDashboard initialTab="health" />} />
+              <Route path="rescue" element={<IntelligenceDashboard initialTab="rescue" />} />
+              <Route path="customer" element={<IntelligenceDashboard initialTab="customer" />} />
+              <Route path="negotiation" element={<IntelligenceDashboard initialTab="negotiation" />} />
+            </Route>
           </Route>
         </Route>
 
@@ -83,13 +91,7 @@ function App() {
           </Route>
         </Route>
 
-        <Route path="/intelligence" element={<ProtectedRoute allowedRoles={["ADMIN", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
-          <Route index element={<IntelligencePage />} />
-          <Route path="health" element={<IntelligencePage initialTab="health" />} />
-          <Route path="rescue" element={<IntelligencePage initialTab="rescue" />} />
-          <Route path="customer" element={<IntelligencePage initialTab="customer" />} />
-          <Route path="negotiation" element={<IntelligencePage initialTab="negotiation" />} />
-        </Route>
+
 
         {/* Fallback routing */}
         <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
