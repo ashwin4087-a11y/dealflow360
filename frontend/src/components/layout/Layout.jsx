@@ -14,7 +14,7 @@ function Layout({ children }) {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">D</div>
+          <img src="/logo.png" alt="DealFlow360" className="sidebar-brand-logo" />
           <div className="brand-name">DealFlow360</div>
         </div>
 
