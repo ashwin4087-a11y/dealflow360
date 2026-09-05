@@ -1,32 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App.jsx';
+import {
+  Activity, AlertTriangle, ArrowLeft, ArrowRight, BarChart3, Bell, Boxes, Check,
+  ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, FileText, Filter, Gauge,
+  LayoutDashboard, LogOut, MoreVertical, PackageCheck, PanelLeft, Search,
+  ShieldCheck, Sparkles, Target, Truck, Users, X, Zap
+} from 'lucide-react';
 import './styles.css';
 
 // ─── Storage keys (as specified in requirements) ───────────────────────────────
 const SK = {
   QUOTES: 'dealflow360_quotations',
   ROLE:   'dealflow360_user_role',
-<<<<<<< Updated upstream
-=======
-  NOTIFS: 'dealflow360_notifications',
-};
-
-export const addNotification = (forRole, message, type = 'info') => {
-  const newNotif = {
-    id: Date.now() + Math.random(),
-    forRole,
-    message,
-    type,
-    read: false,
-    timestamp: new Date().toISOString()
-  };
-  const notifs = JSON.parse(localStorage.getItem(SK.NOTIFS) || '[]');
-  notifs.push(newNotif);
-  localStorage.setItem(SK.NOTIFS, JSON.stringify(notifs));
-  window.dispatchEvent(new CustomEvent('dealflow360_notif', { detail: newNotif }));
->>>>>>> Stashed changes
 };
 
 // ─── Seed quotations (shared across all roles) ─────────────────────────────────
@@ -759,10 +744,6 @@ function QuotesPage({ role, quotes, setQuotes }) {
       if (q.id !== simQuote.id) return q;
       return { ...q, discount: disc, quantity: qty, status: 'Pending Manager Approval' };
     }));
-<<<<<<< Updated upstream
-=======
-    addNotification('manager', `Quotation ${simQuote.id} scenario applied, requires approval`);
->>>>>>> Stashed changes
     setSimQuote(null);
     setConfirmApply(false);
   };
@@ -771,30 +752,16 @@ function QuotesPage({ role, quotes, setQuotes }) {
   const handleApprove = (id) => {
     if (role !== 'manager') return;
     setQuotes(quotes.map(q => q.id === id && q.status === 'Pending Manager Approval' ? { ...q, status: 'Approved' } : q));
-<<<<<<< Updated upstream
-=======
-    addNotification('sales', `Quotation ${id} approved by Manager`);
-    addNotification('customer', `Quotation ${id} is ready for review`);
->>>>>>> Stashed changes
   };
   const handleReject  = (id) => {
     if (role !== 'manager') return;
     setQuotes(quotes.map(q => q.id === id && (q.status === 'Pending Manager Approval' || q.status === 'Counteroffer Requested') ? { ...q, status: 'Rejected'  } : q));
-<<<<<<< Updated upstream
-=======
-    addNotification('sales', `Quotation ${id} rejected by Manager`);
->>>>>>> Stashed changes
   };
 
   // ── Customer action handlers ──
   const handleAccept = () => {
     if (role !== 'customer' || !reviewAcceptQuote || reviewAcceptQuote.status !== 'Approved' || !acceptChecked) return;
     setQuotes(quotes.map(q => q.id === reviewAcceptQuote.id ? { ...q, status: 'Accepted by Customer' } : q));
-<<<<<<< Updated upstream
-=======
-    addNotification('sales', `Quotation ${reviewAcceptQuote.id} accepted by customer`);
-    addNotification('manager', `Quotation ${reviewAcceptQuote.id} accepted by customer`);
->>>>>>> Stashed changes
     setReviewAcceptQuote(null);
     setAcceptChecked(false);
   };
@@ -803,11 +770,6 @@ function QuotesPage({ role, quotes, setQuotes }) {
     e.preventDefault();
     if (role !== 'customer' || !negotiateQuote || negotiateQuote.status !== 'Approved') return;
     setQuotes(quotes.map(q => q.id === negotiateQuote.id ? { ...q, status: 'Counteroffer Requested', counteroffer: negotiationForm } : q));
-<<<<<<< Updated upstream
-=======
-    addNotification('sales', `New counteroffer on ${negotiateQuote.id}`);
-    addNotification('manager', `New counteroffer on ${negotiateQuote.id}`);
->>>>>>> Stashed changes
     setNegotiateQuote(null);
     setNegotiationForm({ discount: '', quantity: '', terms: '', message: '' });
   };
@@ -833,17 +795,9 @@ function QuotesPage({ role, quotes, setQuotes }) {
     const record    = { ...form, unitPrice, cost, quantity, discount, status };
     if (record.id) {
       setQuotes(quotes.map(q => q.id === record.id ? record : q));
-<<<<<<< Updated upstream
     } else {
       record.id = 'Q-' + (1000 + Math.floor(Math.random() * 9000));
       setQuotes([...quotes, record]);
-=======
-      addNotification('manager', `Quotation ${record.id} updated, requires approval`);
-    } else {
-      record.id = 'Q-' + (1000 + Math.floor(Math.random() * 9000));
-      setQuotes([...quotes, record]);
-      addNotification('manager', `New quotation ${record.id} submitted for approval`);
->>>>>>> Stashed changes
     }
     setModalOpen(false);
     setForm(null);
@@ -1457,219 +1411,6 @@ function OperationalPage({ title }) {
   );
 }
 
-<<<<<<< Updated upstream
-=======
-// ─── Notification & Search Components ──────────────────────────────────────────
-function NotificationCenter({ role }) {
-  const [notifications, setNotifications] = useState([]);
-  const [open, setOpen] = useState(false);
-
-  const loadNotifications = () => {
-    try {
-      const all = JSON.parse(localStorage.getItem(SK.NOTIFS) || '[]');
-      setNotifications(all.filter(n => n.forRole === role).reverse());
-    } catch {}
-  };
-
-  useEffect(() => {
-    loadNotifications();
-    const handleNotif = () => loadNotifications();
-    window.addEventListener('storage', handleNotif);
-    window.addEventListener('dealflow360_notif', handleNotif);
-    return () => {
-      window.removeEventListener('storage', handleNotif);
-      window.removeEventListener('dealflow360_notif', handleNotif);
-    };
-  }, [role]);
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const markAllRead = () => {
-    const all = JSON.parse(localStorage.getItem(SK.NOTIFS) || '[]');
-    all.forEach(n => { if (n.forRole === role) n.read = true; });
-    localStorage.setItem(SK.NOTIFS, JSON.stringify(all));
-    window.dispatchEvent(new Event('dealflow360_notif'));
-  };
-
-  const markRead = (id) => {
-    const all = JSON.parse(localStorage.getItem(SK.NOTIFS) || '[]');
-    const target = all.find(n => n.id === id);
-    if (target && target.forRole === role) {
-      target.read = true;
-      localStorage.setItem(SK.NOTIFS, JSON.stringify(all));
-      window.dispatchEvent(new Event('dealflow360_notif'));
-    }
-  };
-
-  return (
-    <div className="notification-center-wrap">
-      <button className="icon-button notification" onClick={() => setOpen(!open)}>
-        <Bell size={16} />
-        {unreadCount > 0 && <b>{unreadCount}</b>}
-      </button>
-      {open && (
-        <div className="notification-panel">
-          <div className="notification-header">
-            <h4>Notifications</h4>
-            {unreadCount > 0 && <button className="small-button" onClick={markAllRead}>Mark all read</button>}
-          </div>
-          <div className="notification-list">
-            {notifications.length === 0 ? (
-              <div style={{ padding: 16, textAlign: 'center', color: 'var(--muted)' }}>No notifications</div>
-            ) : (
-              notifications.map(n => (
-                <div key={n.id} className={`notification-item ${!n.read ? 'unread' : ''}`} onClick={() => markRead(n.id)}>
-                  {!n.read && <i className="unread-dot" />}
-                  <p>{n.message}</p>
-                  <small>{new Date(n.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ToastContainer({ role }) {
-  const [toasts, setToasts] = useState([]);
-  const lastTimeRef = React.useRef(Date.now());
-
-  useEffect(() => {
-    const checkStorage = () => {
-      const all = JSON.parse(localStorage.getItem(SK.NOTIFS) || '[]');
-      const newNotifs = all.filter(n => n.forRole === role && new Date(n.timestamp).getTime() > lastTimeRef.current);
-      if (newNotifs.length > 0) {
-        lastTimeRef.current = Date.now();
-        setToasts(prev => [...prev, ...newNotifs]);
-      }
-    };
-    
-    const handleCustom = (e) => {
-      if (e.detail && e.detail.forRole === role) {
-        lastTimeRef.current = Date.now();
-        setToasts(prev => [...prev, e.detail]);
-      } else if (!e.detail) {
-        checkStorage();
-      }
-    };
-
-    const handleStorage = (e) => { if (e.key === SK.NOTIFS) checkStorage(); };
-
-    window.addEventListener('dealflow360_notif', handleCustom);
-    window.addEventListener('storage', handleStorage);
-    return () => {
-      window.removeEventListener('dealflow360_notif', handleCustom);
-      window.removeEventListener('storage', handleStorage);
-    };
-  }, [role]);
-
-  useEffect(() => {
-    if (toasts.length > 0) {
-      const timer = setTimeout(() => {
-        setToasts(prev => prev.slice(1));
-      }, 2000); // Exactly ~2 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [toasts]);
-
-  if (toasts.length === 0) return null;
-
-  return (
-    <div className="toast-container">
-      {toasts.map(t => (
-        <div key={t.id} className="toast-message">
-          <span>{t.message}</span>
-          <button onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))}><X size={12}/></button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function GlobalSearch({ role, onNavigate }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
-  
-  const search = (term) => {
-    setQuery(term);
-    if (!term.trim()) {
-      setResults([]);
-      setIsOpen(false);
-      return;
-    }
-    
-    const lower = term.toLowerCase();
-    const quotes = JSON.parse(localStorage.getItem(SK.QUOTES) || JSON.stringify(SEED_QUOTES));
-    
-    let matches = [];
-    const allCustomers = [...new Set(quotes.map(q => q.customer))];
-    
-    // 1. Quotations
-    const quoteMatches = quotes.filter(q => q.id.toLowerCase().includes(lower) || q.product.toLowerCase().includes(lower) || q.customer.toLowerCase().includes(lower));
-    if (quoteMatches.length) matches.push({ category: 'Quotations', items: quoteMatches.map(q => ({ label: `${q.id} - ${q.product} (${q.customer})`, nav: 'quotes' })) });
-    
-    // 2. Customers
-    if (role !== 'customer') {
-       const custMatches = allCustomers.filter(c => c.toLowerCase().includes(lower));
-       if (custMatches.length) matches.push({ category: 'Customers', items: custMatches.map(c => ({ label: c, nav: 'customer' })) });
-    }
-    
-    // 3. Products
-    if (role !== 'customer') {
-       const allProducts = [...new Set(quotes.map(q => q.product))];
-       const prodMatches = allProducts.filter(p => p.toLowerCase().includes(lower));
-       if (prodMatches.length) matches.push({ category: 'Products', items: prodMatches.map(p => ({ label: p, nav: 'quotes' })) });
-    }
-    
-    // 4. Deals (from RISK_DEALS)
-    if (role !== 'customer') {
-       const dealMatches = RISK_DEALS.filter(d => d.title.toLowerCase().includes(lower) || d.account.toLowerCase().includes(lower));
-       if (dealMatches.length) matches.push({ category: 'Deals', items: dealMatches.map(d => ({ label: `${d.title} - ${d.account}`, nav: 'deal-detail' })) });
-    }
-    
-    setResults(matches);
-    setIsOpen(true);
-  };
-  
-  useEffect(() => {
-    const handleKey = (e) => { if (e.key === 'Escape') setIsOpen(false); };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, []);
-  
-  return (
-    <div className="global-search-wrap">
-      <div className="search-box">
-        <Search size={14} />
-        <input type="text" placeholder="Search accounts, quotes..." value={query} onChange={e => search(e.target.value)} onFocus={() => {if (query) setIsOpen(true);}} />
-        <kbd>⌘K</kbd>
-      </div>
-      {isOpen && (
-        <div className="search-dropdown">
-          {results.length === 0 ? (
-            <div className="search-no-results">No results found</div>
-          ) : (
-            results.map(cat => (
-              <div key={cat.category} className="search-category">
-                <div className="search-category-title">{cat.category}</div>
-                {cat.items.map((item, i) => (
-                  <button key={i} className="search-item" onClick={() => { setIsOpen(false); setQuery(''); onNavigate(item.nav); }}>
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
->>>>>>> Stashed changes
 // ─── App — root, manages login + shared state ──────────────────────────────────
 function App() {
   const [role, setRole] = useState(() => localStorage.getItem(SK.ROLE) || null);
@@ -1705,10 +1446,6 @@ function App() {
 
   return (
     <div className="app-shell">
-<<<<<<< Updated upstream
-=======
-      <ToastContainer role={role} />
->>>>>>> Stashed changes
       <Sidebar role={role} active={activeTab} onNavigate={setActiveTab} />
       <div className="main-shell">
         <header className="topbar">
@@ -1716,17 +1453,12 @@ function App() {
             <span>DealFlow360</span> / <strong>{ROLE_LABELS[role]}</strong>
           </div>
           <div className="top-actions">
-<<<<<<< Updated upstream
             <div className="search-box">
               <Search size={14} />
               <input type="text" placeholder="Search accounts, quotes..." />
               <kbd>⌘K</kbd>
             </div>
             <button className="icon-button notification"><Bell size={16} /><b /></button>
-=======
-            <GlobalSearch role={role} onNavigate={setActiveTab} />
-            <NotificationCenter role={role} />
->>>>>>> Stashed changes
             {/* Slim role badge — informational only */}
             <span className={`topbar-role-badge role-${role}`}>{ROLE_LABELS[role]}</span>
             <button
