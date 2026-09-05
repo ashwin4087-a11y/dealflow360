@@ -1,0 +1,570 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>DealFlow360 - Fulfillment &amp; Warehouse Operations</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: '#3368A0',
+            'brand-dark': '#254e7a',
+            canvas: '#F2EFE7',
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    @layer base {
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F2EFE7;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-[#F2EFE7] text-slate-800 antialiased min-h-screen">
+<!-- Left Sidebar -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-white z-50 flex flex-col border-r border-[#E2E8F0] shadow-sm">
+<!-- Brand Logo Area -->
+<div class="h-16 px-5 flex items-center gap-3 border-b border-[#E2E8F0] bg-white shrink-0">
+<img alt="DealFlow360 Logo" class="w-8 h-8 rounded-lg object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtMRmSLB0KYCDl48SDJDSDk4PpX-2GGg2OhrKupAI1iR10izBblDPj2tqOyNRe8n9xXrhLxfUktXyLUSPlE-nCi8rlEVeauHdfLvE17PTNwQnn1RXsTUcPdRVZL4JIgNMR_b8lpeJUNBsq04-YRDL7ySwtQRm4lM9v-OeQMafuac0U-GSh5a9gg8LwL9KL-lgIgMOjJ8LkBphqZUbd9otU0n-yXfcmqE53lCqZyfXWE8YdttG3Jy7v6NDdhdYfMkbsUw">
+<div class="flex flex-col">
+<span class="font-bold text-[15px] text-slate-900 tracking-tight leading-snug">DealFlow360</span>
+<span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Revenue Ops Core</span>
+</div>
+</div>
+<!-- Navigation Groups -->
+<div class="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+<!-- Section: Sales & Quotation -->
+<div>
+<div class="px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sales &amp; Quotation</div>
+<nav class="mt-1 space-y-0.5">
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">dashboard</span>
+<span class="">Sales Dashboard</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">request_quote</span>
+<span class="">Quotes &amp; Pricing</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">verified</span>
+<span class="">Discount Approvals</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">description</span>
+<span class="">Contracts &amp; Terms</span>
+</a>
+</nav>
+</div>
+<!-- Section: Fulfillment & Billing (Active Group) -->
+<div>
+<div class="px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Fulfillment &amp; Billing</div>
+<nav class="mt-1 space-y-0.5"><a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-slate-400">inventory_2</span><span class="">Fulfillment Dashboard</span></a><a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-slate-400">local_shipping</span><span class="">Orders &amp; Allocation</span></a><a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-semibold bg-[#3368A0] text-white shadow-sm transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-white">warehouse</span><span class="">Warehouse &amp; Inventory</span></a><a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-slate-400">pending_actions</span><span class="">Backorders</span></a><a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-slate-400">receipt_long</span><span class="">Billing &amp; Invoices</span></a></nav>
+</div>
+<!-- Section: Revenue Intelligence -->
+<div>
+<div class="px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Revenue Intelligence</div>
+<nav class="mt-1 space-y-0.5">
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">radar</span>
+<span class="">Deal Health Radar</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">emergency</span>
+<span class="">Deal Rescue</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">psychology</span>
+<span class="">Customer Insights</span>
+</a>
+</nav>
+</div>
+<!-- Section: System & Governance -->
+<div>
+<div class="px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">System &amp; Governance</div>
+<nav class="mt-1 space-y-0.5">
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">monitoring</span>
+<span class="">Analytics &amp; Forecasts</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">rule</span>
+<span class="">Approval Rules</span>
+</a>
+</nav>
+</div>
+</div>
+<!-- User Profile Footer -->
+<div class="p-3 border-t border-[#E2E8F0] bg-slate-50/70 shrink-0">
+<div class="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E2E8F0]">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative shrink-0">
+<img alt="Sarah Jenkins" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1VDDZvjIGjOL6jn2wZW1wIU2HYRaKbHKOspP24VGKYlwiLx6rg69sjBUNER_xTquPQQdTeW2y-xKUhTovIhu6kFdWHulZ2ZiCdrORvm9SK1gUTpqqDNZKwUXL1aQO_wPkByncU5cgGPKt3d-p2kLtq6YImIkgL0tVyYXcCwdDwHsEjLiKaut1G0frm79dXQhX6BRh5nVFwbIiXK77IIL_qRYD64bF8ETATOXjYaUb09gSR_VogCo7xcZOBWCzvxupuI4XHt3lbS">
+<span class="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white"></span>
+</div>
+<div class="flex flex-col truncate">
+<span class="text-[13px] font-semibold text-slate-800 leading-tight truncate">Sarah Jenkins</span>
+<span class="text-[11px] text-slate-400 leading-tight truncate">RevOps Director</span>
+</div>
+</div>
+<button class="p-1 text-slate-400 hover:text-slate-600 rounded transition-colors" title="Settings">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<div class="pl-64">
+<!-- Top Bar -->
+<header class="fixed top-0 left-64 right-0 h-16 bg-white/95 backdrop-blur z-40 border-b border-[#E2E8F0] px-6 flex items-center justify-between gap-4">
+<!-- Breadcrumb / Context -->
+<div class="flex items-center gap-2 text-[13px] shrink-0">
+<span class="text-slate-500 font-medium">Fulfillment &amp; Billing</span>
+<span class="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
+<span class="text-slate-900 font-semibold">Warehouse &amp; Inventory Operations</span>
+</div>
+<!-- Quick Search Bar -->
+<div class="flex-1 max-w-md mx-auto">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">search</span>
+<input class="w-full h-9 pl-9 pr-12 bg-slate-50 hover:bg-slate-100/70 border border-[#E2E8F0] rounded-md text-[13px] text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#3368A0] focus:ring-1 focus:ring-[#3368A0] transition-all" placeholder="Search orders, SKUs, serials, accounts..." type="text">
+<kbd class="absolute right-2 px-1.5 py-0.5 bg-white border border-[#E2E8F0] rounded text-[10px] text-slate-400 font-medium">⌘K</kbd>
+</div>
+</div>
+<!-- Right Actions & Meta -->
+<div class="flex items-center gap-3 shrink-0">
+<!-- INR Currency Indicator -->
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-[#E2E8F0] text-[12px] font-medium text-slate-700"><span class="material-symbols-outlined text-[16px] text-[#3368A0]">currency_rupee</span><span class="">INR ₹ Enterprise</span></div>
+<!-- Notification Icon -->
+<div class="relative">
+<button class="w-9 h-9 flex items-center justify-center rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold px-1 leading-none">3</span>
+</button>
+</div>
+<!-- Primary Action Button -->
+<button class="flex items-center gap-1.5 px-3.5 py-2 bg-[#3368A0] hover:bg-[#254e7a] text-white rounded-md text-[13px] font-medium shadow-sm transition-all"><span class="material-symbols-outlined text-[18px]">add</span><span class="">Allocate Inventory / Dispatch</span></button>
+</div>
+</header>
+<!-- Main Container -->
+<main class="pt-20 px-8 pb-12 max-w-[1600px] mx-auto space-y-6">
+<!-- 2. Page Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
+<div>
+<h1 class="text-[28px] font-semibold text-[#1E293B] tracking-tight leading-tight">Fulfillment &amp; Warehouse Operations</h1>
+<p class="text-[14px] text-slate-500 mt-1">Order release queue, multi-facility warehouse stock reservation, and backorder resolution.</p>
+</div>
+<!-- Quick Actions -->
+<div class="flex items-center gap-2.5 shrink-0">
+<button class="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-[#E2E8F0] rounded-md text-[13px] font-medium shadow-xs transition-colors">
+<span class="material-symbols-outlined text-[18px] text-[#3368A0]">sync</span>
+<span class="">Sync ERP Stock</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-[#E2E8F0] rounded-md text-[13px] font-medium shadow-xs transition-colors"><span class="material-symbols-outlined text-[18px] text-slate-500">file_download</span>
+<span class="">Export Manifest</span></button>
+</div>
+</div>
+<!-- 3. Operational KPI Strip (4 clean, concise metric cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"><div class="bg-white p-5 rounded-lg border border-[#E2E8F0] shadow-xs flex flex-col justify-between h-full">
+  <div class="flex items-start justify-between">
+    <div>
+      <span class="text-[12px] font-semibold text-slate-500 uppercase tracking-wider">Orders in Queue</span>
+      <div class="text-[28px] font-bold text-[#1E293B] mt-1 tracking-tight leading-none">28 <span class="text-[14px] font-medium text-slate-500">Orders</span></div>
+    </div>
+    <div class="w-10 h-10 rounded-lg bg-blue-50 text-[#3368A0] flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+    </div>
+  </div>
+  <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[12px]">
+    <span class="text-slate-600 font-medium">₹3.42 Cr Net Value</span>
+    <span class="inline-flex items-center gap-1.5 text-amber-700 font-semibold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[11px]">
+      <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+      14 urgent
+    </span>
+  </div>
+</div>
+<div class="bg-white p-5 rounded-lg border border-[#E2E8F0] shadow-xs flex flex-col justify-between h-full">
+  <div class="flex items-start justify-between">
+    <div>
+      <span class="text-[12px] font-semibold text-slate-500 uppercase tracking-wider">Fulfillment SLA</span>
+      <div class="text-[28px] font-bold text-[#1E293B] mt-1 tracking-tight leading-none">98.2%</div>
+    </div>
+    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-[20px]">verified</span>
+    </div>
+  </div>
+  <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[12px]">
+    <span class="text-emerald-700 font-medium flex items-center gap-1">
+      <span class="material-symbols-outlined text-[15px]">check_circle</span>
+      On-Time Dispatch
+    </span>
+    <span class="text-slate-500">Avg 3.4 hrs pick-to-stage</span>
+  </div>
+</div>
+<div class="bg-white p-5 rounded-lg border border-[#E2E8F0] shadow-xs flex flex-col justify-between h-full">
+  <div class="flex items-start justify-between">
+    <div>
+      <span class="text-[12px] font-semibold text-slate-500 uppercase tracking-wider">Active Facilities</span>
+      <div class="text-[28px] font-bold text-[#1E293B] mt-1 tracking-tight leading-none">3 <span class="text-[14px] font-medium text-slate-500">Hubs</span></div>
+    </div>
+    <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-[20px]">warehouse</span>
+    </div>
+  </div>
+  <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-medium text-slate-600">
+    <span title="Chicago WH-01" class="">WH-01: <strong class="text-slate-800 font-semibold">91%</strong></span>
+    <span class="text-slate-300">•</span>
+    <span title="Dallas WH-02" class="">WH-02: <strong class="text-slate-800 font-semibold">74%</strong></span>
+    <span class="text-slate-300">•</span>
+    <span title="Mumbai WH-03" class="">WH-03: <strong class="text-slate-800 font-semibold">62%</strong></span>
+  </div>
+</div>
+<div class="bg-white p-5 rounded-lg border border-[#E2E8F0] shadow-xs flex flex-col justify-between h-full">
+  <div class="flex items-start justify-between">
+    <div>
+      <span class="text-[12px] font-semibold text-slate-500 uppercase tracking-wider">Critical Backorders</span>
+      <div class="text-[28px] font-bold text-rose-600 mt-1 tracking-tight leading-none">4 <span class="text-[14px] font-medium text-slate-500">SKUs Impacted</span></div>
+    </div>
+    <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-[20px]">warning</span>
+    </div>
+  </div>
+  <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[12px]">
+    <span class="text-rose-600 font-medium truncate">Affecting ₹48.60L revenue</span>
+    <span class="text-slate-400 font-medium shrink-0">Attention req.</span>
+  </div>
+</div></div>
+<!-- 4. Main Operational Table 1 (Active Order Fulfillment Queue) -->
+<section class="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
+<!-- Table Control Shelf -->
+<div class="p-4 border-b border-[#E2E8F0] flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white">
+<div class="flex items-center gap-3">
+<h2 class="text-[16px] font-semibold text-[#1E293B]">Active Order Fulfillment Queue</h2>
+<!-- Segmented Filter Tabs -->
+<div class="hidden sm:flex items-center bg-slate-100 p-0.5 rounded-md text-[12px] font-medium">
+<button class="px-2.5 py-1 rounded bg-white text-slate-900 font-semibold shadow-xs">All Orders (28)</button>
+<button class="px-2.5 py-1 rounded text-slate-600 hover:text-slate-900">Ready to Pick (18)</button>
+<button class="px-2.5 py-1 rounded text-slate-600 hover:text-slate-900">Staged for Dispatch (6)</button>
+<button class="px-2.5 py-1 rounded text-slate-600 hover:text-slate-900">Backorder Hold (4)</button>
+</div>
+</div>
+<!-- Facility Filter Dropdown -->
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-[16px]">location_on</span>
+<select class="h-8 pl-8 pr-7 text-[12px] bg-white border border-[#E2E8F0] rounded-md font-medium text-slate-700 focus:outline-none focus:border-[#3368A0] cursor-pointer">
+<option>All Fulfillment Hubs</option>
+<option>Chicago WH-01</option>
+<option>Dallas WH-02</option>
+<option>Mumbai WH-03</option>
+</select>
+</div>
+<button class="h-8 px-2.5 rounded-md border border-[#E2E8F0] bg-white text-slate-600 hover:text-slate-900 flex items-center gap-1 text-[12px] font-medium transition-colors">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+<span class="">More Filters</span>
+</button>
+</div>
+</div>
+<!-- Table Data -->
+<div class="overflow-x-auto">
+<table class="w-full text-left text-[13px] border-collapse">
+<thead>
+<tr class="bg-slate-50 border-b border-[#E2E8F0] text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
+<th class="py-3 px-4">Order &amp; Quote</th>
+<th class="py-3 px-4">Customer &amp; Destination</th>
+<th class="py-3 px-4">Value (₹)</th>
+<th class="py-3 px-4">Warehouse Facility</th>
+<th class="py-3 px-4">Stock Allocation</th>
+<th class="py-3 px-4">Dispatch Status</th>
+<th class="py-3 px-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#E2E8F0] text-slate-700">
+<!-- Row 1: ORD-88412 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 px-4 font-medium">
+<div class="flex items-center gap-1.5">
+<span class="font-bold text-[#3368A0]">ORD-88412</span>
+<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">Q-9482</span>
+</div>
+<div class="text-[11px] text-slate-400 mt-0.5">Priority: Express SLA</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-semibold text-slate-900">Stratos Networks Ltd</div>
+<div class="text-[12px] text-slate-500">Bengaluru Tech Hub</div>
+</td>
+<td class="py-3.5 px-4 font-semibold text-slate-900 tabular-nums">
+                  ₹2,15,878
+                </td>
+<td class="py-3.5 px-4">
+<div class="inline-flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="font-medium text-slate-800">Mumbai WH-03</span>
+</div>
+<div class="text-[11px] text-slate-400">Bay B-14</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="material-symbols-outlined text-[13px]">check</span>
+                    Fully Reserved (3 of 3 SKUs)
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    Ready to Pick
+                  </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<button class="px-2.5 py-1 rounded bg-[#3368A0] hover:bg-[#254e7a] text-white text-[12px] font-medium shadow-xs transition-colors">
+                    Release to Floor
+                  </button>
+</td>
+</tr>
+<!-- Row 2: ORD-88405 -->
+<tr class="hover:bg-slate-50/70 transition-colors bg-amber-50/20">
+<td class="py-3.5 px-4 font-medium">
+<div class="flex items-center gap-1.5">
+<span class="font-bold text-amber-700">ORD-88405</span>
+<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">Q-9480</span>
+</div>
+<div class="text-[11px] text-amber-700 font-medium mt-0.5">High Value Priority</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-semibold text-slate-900">Helios Health System</div>
+<div class="text-[12px] text-slate-500">Chicago Regional HQ</div>
+</td>
+<td class="py-3.5 px-4 font-semibold text-slate-900 tabular-nums">
+                  ₹7,47,60,000
+                </td>
+<td class="py-3.5 px-4">
+<div class="inline-flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+<span class="font-medium text-slate-800">Chicago WH-01</span>
+</div>
+<div class="text-[11px] text-slate-400">Zone 4 Shortage</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
+<span class="material-symbols-outlined text-[13px]">warning</span>
+                    Partial (1/2 SKUs - OptiSensor Backordered)
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-900">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                    On Hold
+                  </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<button class="px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white text-[12px] font-medium shadow-xs transition-colors">
+                    Reallocate WH-02
+                  </button>
+</td>
+</tr>
+<!-- Row 3: ORD-88398 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 px-4 font-medium">
+<div class="flex items-center gap-1.5">
+<span class="font-bold text-[#3368A0]">ORD-88398</span>
+<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">Q-9475</span>
+</div>
+<div class="text-[11px] text-slate-400 mt-0.5">International Freight</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-semibold text-slate-900">Apex Logistics</div>
+<div class="text-[12px] text-slate-500">Frankfurt Terminal</div>
+</td>
+<td class="py-3.5 px-4 font-semibold text-slate-900 tabular-nums">
+                  ₹1,76,40,000
+                </td>
+<td class="py-3.5 px-4">
+<div class="inline-flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-blue-500"></span>
+<span class="font-medium text-slate-800">Dallas WH-02</span>
+</div>
+<div class="text-[11px] text-slate-400">Loading Dock 08</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="material-symbols-outlined text-[13px]">check</span>
+                    Fully Reserved (10 units)
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                    Staged / Packing
+                  </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<button class="px-2.5 py-1 rounded border border-[#E2E8F0] bg-white hover:bg-slate-50 text-slate-700 text-[12px] font-medium shadow-xs transition-colors">
+                    Print Manifest
+                  </button>
+</td>
+</tr>
+<!-- Row 4: ORD-88390 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 px-4 font-medium">
+<div class="flex items-center gap-1.5">
+<span class="font-bold text-[#3368A0]">ORD-88390</span>
+<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">Q-9452</span>
+</div>
+<div class="text-[11px] text-slate-400 mt-0.5">Carrier: FedEx Freight</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-semibold text-slate-900">Vantage Automotive</div>
+<div class="text-[12px] text-slate-500">Austin Plant</div>
+</td>
+<td class="py-3.5 px-4 font-semibold text-slate-900 tabular-nums">
+                  ₹5,29,20,000
+                </td>
+<td class="py-3.5 px-4">
+<div class="inline-flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-slate-400"></span>
+<span class="font-medium text-slate-800">Dallas WH-02</span>
+</div>
+<div class="text-[11px] text-slate-400">Gate Out #03</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="material-symbols-outlined text-[13px]">check</span>
+                    Fully Reserved (50 units)
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700">
+<span class="material-symbols-outlined text-[13px] text-slate-500">local_shipping</span>
+                    Dispatched
+                  </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<button class="px-2.5 py-1 rounded border border-[#E2E8F0] bg-white hover:bg-slate-50 text-[#3368A0] hover:text-[#254e7a] text-[12px] font-medium shadow-xs transition-colors">
+                    Track Shipment
+                  </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer Pagination -->
+<div class="p-3.5 bg-slate-50 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-2 text-[12px] text-slate-500"><span class="text-slate-600 font-medium">Showing 4 of 28 orders</span>
+<div class="flex items-center gap-1.5">
+  <button class="px-3 py-1.5 rounded border border-[#E2E8F0] bg-white text-slate-400 cursor-not-allowed text-[12px] font-medium shadow-xs" disabled="">Previous</button>
+  <span class="px-3 py-1.5 text-slate-700 font-semibold text-[12px]">Page 1 of 7</span>
+  <button class="px-3 py-1.5 rounded border border-[#E2E8F0] bg-white text-slate-700 hover:bg-slate-100 text-[12px] font-medium shadow-xs transition-colors">Next</button>
+</div></div>
+</section>
+<!-- 5. Secondary Operational Table (Critical Backorders & Resolution Desk) -->
+<section class="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
+<!-- Section Header -->
+<div class="p-4 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-rose-600">emergency</span>
+<div>
+<h2 class="text-[16px] font-semibold text-[#1E293B]">Critical Backorders &amp; Resolution Desk</h2>
+<p class="text-[12px] text-slate-500">Real-time dynamic stock reallocation engine</p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 self-start sm:self-auto">
+            High Severity Queue
+          </span>
+</div>
+<!-- Table Content -->
+<div class="overflow-x-auto">
+<table class="w-full text-left text-[13px] border-collapse">
+<thead>
+<tr class="bg-slate-50 border-b border-[#E2E8F0] text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
+<th class="py-3 px-4">Backordered SKU &amp; Specs</th>
+<th class="py-3 px-4">Customer Impact &amp; Order</th>
+<th class="py-3 px-4">Shortage Analysis</th>
+<th class="py-3 px-4">Expected Inbound ETA</th>
+<th class="py-3 px-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#E2E8F0] text-slate-700">
+<!-- Item 1: OptiSensor Pro-4 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 px-4 align-top">
+<div class="font-bold text-slate-900">OptiSensor Pro-4</div>
+<div class="text-[11px] text-slate-500 mt-0.5">SKU: OPT-SN-402 • Sensor Unit</div>
+<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">Shortage Critical</span>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="font-semibold text-slate-900">Helios Health System</div>
+<div class="text-[12px] text-slate-600">Order: <span class="font-semibold text-amber-700">ORD-88405</span></div>
+<div class="text-[11px] font-medium text-slate-500">Deal Value: ₹7.47 Cr</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="font-semibold text-rose-600">WH-01: 0 Available</div>
+<div class="text-[12px] text-slate-600 mt-0.5">In-Transit: <strong class="text-slate-900">6 units</strong></div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="font-medium text-slate-900">Oct 22 (2 days)</div>
+<div class="text-[11px] text-slate-500 mt-0.5">Carrier: Ground Carrier</div>
+</td>
+<td class="py-3.5 px-4 align-top text-right whitespace-nowrap">
+<button class="px-3 py-1.5 rounded bg-[#3368A0] hover:bg-[#254e7a] text-white text-[12px] font-semibold shadow-xs transition-colors flex items-center gap-1.5 ml-auto">
+<span class="material-symbols-outlined text-[15px]">swap_horiz</span>
+<span class="">Execute Inter-Warehouse Reallocation (Dallas WH-02)</span>
+</button>
+</td>
+</tr>
+<!-- Item 2: OptiMatrix Edge Switch 48-Port -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 px-4 align-top">
+<div class="font-bold text-slate-900">OptiMatrix Edge Switch 48-Port</div>
+<div class="text-[11px] text-slate-500 mt-0.5">SKU: OME-SW-48P • Firmware 2.4</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="font-semibold text-slate-900">Centaur Global</div>
+<div class="text-[12px] text-slate-600">Order: <span class="font-semibold text-slate-800">ORD-7688</span></div>
+<div class="text-[11px] font-medium text-slate-500">Deal Value: ₹84,000</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="font-medium text-slate-800">WH-01: 1 Available</div>
+<div class="text-[12px] text-amber-700 font-semibold mt-0.5">Needed: 2 units</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="font-medium text-slate-900">Oct 24 (4 days)</div>
+<div class="text-[11px] text-slate-500 mt-0.5">Carrier: Scheduled Freight</div>
+</td>
+<td class="py-3.5 px-4 align-top text-right whitespace-nowrap">
+<button class="px-3 py-1.5 rounded border border-[#E2E8F0] bg-white hover:bg-slate-50 text-slate-700 text-[12px] font-medium shadow-xs transition-colors flex items-center gap-1.5 ml-auto">
+<span class="material-symbols-outlined text-[15px] text-slate-500">call_split</span>
+<span class="">Release Partial &amp; Hold Balance</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- 6. Supporting Warehouse Logistics Status (Bottom cards) -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="bg-white p-5 rounded-lg border border-[#E2E8F0] shadow-sm flex flex-col justify-between"><div><div class="flex items-center justify-between pb-3 border-b border-[#E2E8F0]"><div><h3 class="text-[15px] font-semibold text-[#1E293B]">Facility Dispatch Velocity (Past 7 Days)</h3><p class="text-[12px] text-slate-500 mt-0.5">Outbound pallet volume &amp; release cycles across fulfillment nodes</p></div><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">+12.4% vs prev week</span></div><div class="h-32 pt-5 pb-2 flex items-end justify-between gap-3"><div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group"><div class="w-full bg-slate-100 group-hover:bg-[#3368A0]/70 rounded-t transition-all" style="height: 48%;"></div><span class="text-[10px] text-slate-500 font-medium">Mon</span></div><div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group"><div class="w-full bg-slate-100 group-hover:bg-[#3368A0]/70 rounded-t transition-all" style="height: 62%;"></div><span class="text-[10px] text-slate-500 font-medium">Tue</span></div><div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group"><div class="w-full bg-slate-100 group-hover:bg-[#3368A0]/70 rounded-t transition-all" style="height: 54%;"></div><span class="text-[10px] text-slate-500 font-medium">Wed</span></div><div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group"><div class="w-full bg-slate-100 group-hover:bg-[#3368A0]/70 rounded-t transition-all" style="height: 78%;"></div><span class="text-[10px] text-slate-500 font-medium">Thu</span></div><div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group"><div class="w-full bg-slate-100 group-hover:bg-[#3368A0]/70 rounded-t transition-all" style="height: 68%;"></div><span class="text-[10px] text-slate-500 font-medium">Fri</span></div><div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group"><div class="w-full bg-slate-100 group-hover:bg-[#3368A0]/70 rounded-t transition-all" style="height: 84%;"></div><span class="text-[10px] text-slate-500 font-medium">Sat</span></div><div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group"><div class="w-full bg-[#3368A0] rounded-t shadow-xs" style="height: 94%;"></div><span class="text-[10px] text-[#3368A0] font-bold">Today</span></div></div></div><div class="pt-3 mt-3 border-t border-[#E2E8F0] flex items-center justify-between text-[12px] text-slate-500"><span class="">Cycle SLA Compliance: <strong class="text-emerald-700 font-semibold">98.2%</strong></span><span class="">Avg Pick-to-Stage: <strong class="text-slate-800 font-semibold">3.4 hrs</strong></span></div></div><div class="bg-white p-5 rounded-lg border border-[#E2E8F0] shadow-sm flex flex-col justify-between"><div><div class="flex items-center justify-between pb-3 border-b border-[#E2E8F0]"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[#3368A0] text-[18px]">verified_user</span><h3 class="text-[15px] font-semibold text-[#1E293B]">Fulfillment Hubs Live Status</h3></div><span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>All Online</span></div><div class="space-y-3 pt-3"><div class="p-2.5 rounded-md border border-[#E2E8F0] bg-slate-50 flex items-center justify-between"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded bg-white border border-[#E2E8F0] flex items-center justify-center font-bold text-[12px] text-[#3368A0]">01</div><div><div class="font-semibold text-slate-800 text-[13px]">Chicago Central Facility</div><div class="text-[11px] text-slate-500">Zone 4 OptiSensor Shortage • 91% Capacity</div></div></div><span class="px-2 py-0.5 text-[11px] font-medium rounded bg-amber-50 text-amber-800 border border-amber-200">Attention</span></div><div class="p-2.5 rounded-md border border-[#E2E8F0] bg-slate-50 flex items-center justify-between"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded bg-white border border-[#E2E8F0] flex items-center justify-center font-bold text-[12px] text-[#3368A0]">02</div><div><div class="font-semibold text-slate-800 text-[13px]">Dallas Intermodal Terminal</div><div class="text-[11px] text-slate-500">Loading Dock 08 Active • 74% Capacity</div></div></div><span class="px-2 py-0.5 text-[11px] font-medium rounded bg-emerald-50 text-emerald-800 border border-emerald-200">Optimal</span></div><div class="p-2.5 rounded-md border border-[#E2E8F0] bg-slate-50 flex items-center justify-between"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded bg-white border border-[#E2E8F0] flex items-center justify-center font-bold text-[12px] text-[#3368A0]">03</div><div><div class="font-semibold text-slate-800 text-[13px]">Mumbai Air Cargo Hub</div><div class="text-[11px] text-slate-500">Bay B-14 Dispatches • 62% Capacity</div></div></div><span class="px-2 py-0.5 text-[11px] font-medium rounded bg-emerald-50 text-emerald-800 border border-emerald-200">Optimal</span></div></div></div><div class="pt-3 mt-3 border-t border-[#E2E8F0] flex items-center justify-between text-[12px]"><span class="text-slate-500 font-medium">Direct Ops Dispatch: Ext 4099</span><button class="text-[#3368A0] hover:text-[#254e7a] font-semibold text-[12px] transition-colors">View Dock Manifests</button></div></div></section>
+</main>
+</div>
+
+
+</body></html>
