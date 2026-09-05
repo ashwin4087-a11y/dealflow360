@@ -1,4 +1,4 @@
-const INTERNAL_ROLES = new Set(["ADMIN", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]);
+const INTERNAL_ROLES = new Set(["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]);
 const DAY_MS = 24 * 60 * 60 * 1000;
 const error = (message, statusCode) => Object.assign(new Error(message), { statusCode });
 

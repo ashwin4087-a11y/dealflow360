@@ -20,45 +20,48 @@ export default function SalesLayout() {
     navigate("/login");
   };
 
-  const navGroups = [
-    {
-      label: "Sales",
-      items: [
-        { label: "Sales Dashboard", path: "/sales/dashboard", icon: LayoutDashboard },
-        { label: "Customers", path: "/sales/customers", icon: Users },
-        { label: "Quotes & Pricing", path: "/sales/quotations", icon: FileText },
-        { label: "Discount Approvals", path: "/sales/approvals", icon: ClipboardCheck },
-        { label: "Contracts & Terms", path: "/sales/quotations", icon: FileText },
-      ],
-    },
-    {
-      label: "Fulfillment",
-      items: [
-        { label: "Fulfillment Dashboard", path: "/fulfillment", icon: PackageCheck },
-        { label: "Orders & Allocation", path: "/sales/orders", icon: Truck },
-        { label: "Warehouse & Inventory", path: "/fulfillment", icon: Boxes },
-        { label: "Backorders", path: "/fulfillment/backorders", icon: AlertTriangle },
-        { label: "Billing & Invoices", path: "/fulfillment/invoices", icon: CircleDollarSign },
-      ],
-    },
-    {
-      label: "Revenue Intelligence",
-      items: [
-        { label: "Deal Health Radar", path: "/intelligence/health", icon: Gauge },
-        { label: "Deal Rescue", path: "/intelligence/rescue", icon: Zap },
-        { label: "Customer Insights", path: "/intelligence/customer", icon: Users },
-        { label: "Negotiation Intelligence", path: "/sales/negotiation", icon: Target },
-      ],
-    },
-    {
-      label: "Governance",
-      items: [
-        { label: "Analytics & Forecast", path: "/intelligence", icon: BarChart3 },
-        { label: "Approval Rules", path: "/sales/approvals", icon: ShieldCheck },
-        { label: "Audit Logs", path: "/intelligence", icon: ScrollText },
-      ],
-    },
-  ];
+    const navGroups = [
+      {
+        label: "Sales",
+        allowedRoles: ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"],
+        items: [
+          { label: "Sales Dashboard", path: "/sales/dashboard", icon: LayoutDashboard },
+          { label: "Customers", path: "/sales/customers", icon: Users },
+          { label: "Quotes & Pricing", path: "/sales/quotations", icon: FileText },
+          { label: "Discount Approvals", path: "/sales/approvals", icon: ClipboardCheck, allowedRoles: ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"] },
+        ],
+      },
+      {
+        label: "Fulfillment",
+        allowedRoles: ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"],
+        items: [
+          { label: "Fulfillment Dashboard", path: "/fulfillment", icon: PackageCheck },
+          { label: "Orders & Allocation", path: "/sales/orders", icon: Truck },
+          { label: "Warehouse & Inventory", path: "/fulfillment", icon: Boxes },
+          { label: "Backorders", path: "/fulfillment/backorders", icon: AlertTriangle },
+          { label: "Billing & Invoices", path: "/fulfillment/invoices", icon: CircleDollarSign },
+        ],
+      },
+      {
+        label: "Revenue Intelligence",
+        allowedRoles: ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"],
+        items: [
+          { label: "Deal Health Radar", path: "/sales/intelligence/health", icon: Gauge },
+          { label: "Deal Rescue", path: "/sales/intelligence/rescue", icon: Zap },
+          { label: "Customer Insights", path: "/sales/intelligence/customer", icon: Users },
+          { label: "Negotiation Intelligence", path: "/sales/negotiation", icon: Target, allowedRoles: ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"] },
+        ],
+      },
+      {
+        label: "Governance",
+        allowedRoles: ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"],
+        items: [
+          { label: "Analytics & Forecast", path: "/sales/analytics", icon: BarChart3 },
+          { label: "Approval Rules", path: "/sales/approvals", icon: ShieldCheck, allowedRoles: ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"] },
+          { label: "Audit Logs", path: "/sales/audit-logs", icon: ScrollText },
+        ],
+      },
+    ];
 
   const activePath = location.pathname;
   
@@ -88,7 +91,11 @@ export default function SalesLayout() {
         
         <div className="nav-scroll" style={{ paddingTop: '1rem' }}>
           {navGroups.map((group) => {
-            const hasActive = group.items.some((item) => isActive(item.path));
+            if (group.allowedRoles && !group.allowedRoles.includes(user?.role)) return null;
+            const filteredItems = group.items.filter(item => !item.allowedRoles || item.allowedRoles.includes(user?.role));
+            if (filteredItems.length === 0) return null;
+
+            const hasActive = filteredItems.some((item) => isActive(item.path));
             const isExpanded = expandedGroup === group.label;
             return (
               <section key={group.label} className={`nav-group ${hasActive ? "has-active" : ""}`}>
@@ -97,7 +104,7 @@ export default function SalesLayout() {
                   {isExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
                 </button>
                 {isExpanded && <div className="nav-items">
-                  {group.items.map(({ label, path, icon: Icon }) => {
+                  {filteredItems.map(({ label, path, icon: Icon }) => {
                     const active = isActive(path);
                     return (
                       <button key={`${label}-${path}`} className={`nav-item ${active ? "active" : ""}`} onClick={() => { navigate(path); setMobileNav(false); }}>

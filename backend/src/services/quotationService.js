@@ -398,9 +398,10 @@ export const previewQuotation = async (prismaClient, id, input) => {
         quantity: input?.quantity ?? item.quantity,
         discountPercent: input?.discount ?? item.discountPercent,
       }));
+  const rawTaxPercent = input?.taxPercent ?? existing.taxPercent;
   const calculated = await calculateQuote(prismaClient, {
     customerId: existing.customerId,
-    taxPercent: input?.taxPercent ?? existing.taxPercent,
+    taxPercent: rawTaxPercent != null ? String(rawTaxPercent) : "0",
     items: requestedItems,
   });
   const risk = calculateBlendedDiscountRisk(calculated.items);

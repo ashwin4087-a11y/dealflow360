@@ -89,11 +89,16 @@ export default function QuotationBuilderPage() {
     setSaving(true);
     setError("");
     try {
+      const sanitizedItems = items.map(item => ({
+        ...item,
+        quantity: item.quantity === '' ? 1 : item.quantity,
+        discountPercent: item.discountPercent === '' ? 0 : item.discountPercent
+      }));
       let res;
       if (id) {
-        res = await quotationApi.updateQuotation(id, items, customer.id);
+        res = await quotationApi.updateQuotation(id, sanitizedItems, customer.id);
       } else {
-        res = await quotationApi.createQuotation(customer.id, items);
+        res = await quotationApi.createQuotation(customer.id, sanitizedItems);
       }
       
       if (res.success) {
@@ -216,7 +221,10 @@ export default function QuotationBuilderPage() {
                           type="number" 
                           min="1" 
                           value={item.quantity} 
-                          onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateItem(index, 'quantity', val === '' ? '' : Math.max(0, parseInt(val, 10)));
+                          }}
                           style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
                         />
                       </td>
@@ -226,7 +234,10 @@ export default function QuotationBuilderPage() {
                           min="0"
                           max="100"
                           value={item.discountPercent}
-                          onChange={(e) => updateItem(index, 'discountPercent', parseFloat(e.target.value) || 0)}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateItem(index, 'discountPercent', val === '' ? '' : parseFloat(val));
+                          }}
                           style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
                         />
                       </td>
@@ -303,7 +314,13 @@ export default function QuotationBuilderPage() {
       {simulatorOpen && quotation && (
         <WhatIfSimulator
           quotation={quotation}
-          canApply={quotation.status === "DRAFT" && (user?.role === "SALESPERSON" || user?.role === "ADMIN")}
+          canApply={
+            (user?.role === "ADMIN") ||
+            (user?.role === "SALESPERSON" && quotation.status === "DRAFT") ||
+            (user?.role === "MANAGER" && ["DRAFT", "PENDING_APPROVAL"].includes(quotation.status)) ||
+            (user?.role === "FINANCE" && quotation.status === "PENDING_APPROVAL")
+          }
+          userRole={user?.role}
           onApply={applyScenario}
           onClose={() => setSimulatorOpen(false)}
         />

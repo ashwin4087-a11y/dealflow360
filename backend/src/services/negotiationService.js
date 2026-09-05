@@ -5,13 +5,7 @@ import { calculateBlendedDiscountRisk } from "./riskService.js";
 const serviceError = (message, statusCode) =>
   Object.assign(new Error(message), { statusCode });
 
-const INTERNAL_ROLES = new Set([
-  "ADMIN",
-  "SALESPERSON",
-  "MANAGER",
-  "FINANCE",
-  "OPERATIONS",
-]);
+const INTERNAL_ROLES = new Set(["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]);
 
 const NEGOTIATION_INCLUDE = {
   quotation: {

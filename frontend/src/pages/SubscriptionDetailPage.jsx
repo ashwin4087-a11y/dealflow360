@@ -1,41 +1,68 @@
 import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import PageHeader from '../components/common/PageHeader';
-import { subscriptionCatalog } from '../data/mockData';
+import { subscriptionApi } from '../api/subscriptionApi';
 
 function SubscriptionDetailPage() {
   const { subscriptionId } = useParams();
-  const subscription = subscriptionCatalog.find((item) => item.id === subscriptionId) ?? subscriptionCatalog[0];
+  const [subscription, setSubscription] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    subscriptionApi.getSubscription(subscriptionId)
+      .then(res => {
+        if (active && res.success) {
+          setSubscription(res.data);
+        } else if (active) {
+          setError('Subscription not found');
+        }
+      })
+      .catch(err => {
+        if (active) setError('Failed to load subscription details.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, [subscriptionId]);
+
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading subscription...</div>;
+  if (error || !subscription) return <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>{error || 'Subscription not found'}</div>;
+
+  const fmt = (val) => `₹${Number(val).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
   return (
     <>
-      <PageHeader title={`SUBSCRIPTION #${subscription.id}`} />
+      <PageHeader title={`SUBSCRIPTION #${subscription.subscriptionNumber || subscription.id}`} />
 
       <div className="detail-layout">
         <section className="card summary-box">
           <div className="properties-grid">
             <div className="property-block">
               <label>Customer</label>
-              <div className="property-value">{subscription.customer}</div>
+              <div className="property-value">{subscription.customer?.name}</div>
             </div>
             <div className="property-block">
               <label>Product</label>
-              <div className="property-value">{subscription.product}</div>
+              <div className="property-value">{subscription.product?.name}</div>
             </div>
             <div className="property-block">
               <label>Amount</label>
-              <div className="property-value">₹{subscription.amount.toLocaleString('en-IN')} / {subscription.billing.toLowerCase()}</div>
+              <div className="property-value">{fmt(subscription.amount)} / {subscription.billingCycle?.toLowerCase()}</div>
             </div>
             <div className="property-block">
               <label>Start Date</label>
-              <div className="property-value">{subscription.startDate}</div>
+              <div className="property-value">{new Date(subscription.startDate).toLocaleDateString()}</div>
             </div>
             <div className="property-block">
               <label>Next Billing</label>
-              <div className="property-value">{subscription.nextBilling}</div>
+              <div className="property-value">{new Date(subscription.nextBillingDate).toLocaleDateString()}</div>
             </div>
             <div className="property-block">
               <label>Status</label>
-              <div className="property-value"><span className="badge status-active">ACTIVE</span></div>
+              <div className="property-value"><span className={`badge ${subscription.status === 'ACTIVE' ? 'status-active' : 'status-pending'}`}>{subscription.status}</span></div>
             </div>
           </div>
 
@@ -59,13 +86,16 @@ function SubscriptionDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {subscription.paymentHistory.map((entry) => (
-                  <tr key={`${entry.invoice}-${entry.date}`}>
-                    <td>{entry.invoice}</td>
-                    <td>{entry.date}</td>
-                    <td>{entry.amount}</td>
+                {subscription.payments?.map((entry) => (
+                  <tr key={entry.id}>
+                    <td>{entry.invoice?.invoiceNumber || entry.invoiceId || 'N/A'}</td>
+                    <td>{new Date(entry.date).toLocaleDateString()}</td>
+                    <td>{fmt(entry.amount)}</td>
                   </tr>
                 ))}
+                {(!subscription.payments || subscription.payments.length === 0) && (
+                  <tr><td colSpan="3" style={{ textAlign: 'center', padding: '1rem' }}>No billing history found.</td></tr>
+                )}
               </tbody>
             </table>
           </div>

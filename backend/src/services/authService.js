@@ -2,9 +2,11 @@ import bcrypt from "bcryptjs";
 import { signAccessToken } from "../utils/jwt.js";
 
 const DEMO_USERS = {
-  "sales@dealflow360.com": { id: "demo-sales", name: "Sales Demo", email: "sales@dealflow360.com", role: "SALESPERSON", password: "demo123" },
-  "manager@dealflow360.com": { id: "demo-manager", name: "Manager Demo", email: "manager@dealflow360.com", role: "MANAGER", password: "demo123" },
-  "customer@dealflow360.com": { id: "demo-customer", name: "Customer Demo", email: "customer@dealflow360.com", role: "CUSTOMER", password: "demo123" },
+  "sales@dealflow360.com": { id: "seed-user-sales", name: "Rahul Sharma", email: "sales@dealflow360.com", role: "SALESPERSON", password: "demo123" },
+  "manager@dealflow360.com": { id: "seed-user-manager", name: "Priya Patel", email: "manager@dealflow360.com", role: "MANAGER", password: "demo123" },
+  "customer@dealflow360.com": { id: "seed-user-customer", name: "Vikram Singh", email: "customer@dealflow360.com", role: "CUSTOMER", password: "demo123" },
+  "admin@dealflow360.com": { id: "seed-user-admin", name: "Admin User", email: "admin@dealflow360.com", role: "ADMIN", password: "demo123" },
+  "finance@dealflow360.com": { id: "seed-user-finance", name: "Amit Verma", email: "finance@dealflow360.com", role: "FINANCE", password: "demo123" },
 };
 
 const invalidCredentialsError = () => {

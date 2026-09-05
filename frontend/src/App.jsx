@@ -10,10 +10,11 @@ import DashboardPage from './pages/sales/DashboardPage';
 import CustomersPage from './pages/sales/CustomersPage';
 import QuotationBuilderPage from './pages/sales/QuotationBuilderPage';
 import QuotationListPage from './pages/sales/QuotationListPage';
-            <Route path="quotations" element={<QuotationListPage />} />
 import QuotationDetailsPage from './pages/sales/QuotationDetailsPage';
 import ApprovalsPage from './pages/sales/ApprovalsPage';
 import OrdersPage from './pages/sales/OrdersPage';
+import AnalyticsPage from './pages/sales/AnalyticsPage';
+import AuditLogsPage from './pages/sales/AuditLogsPage';
 import FulfillmentLayout from './components/layout/Layout';
 import FulfillmentDashboardPage from './pages/DashboardPage';
 import OrderFulfillmentDetailPage from './pages/OrderFulfillmentDetailPage';
@@ -43,27 +44,29 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         
         {/* Core Sales (Member 1) Routes */}
-        <Route path="/sales" element={<ProtectedRoute allowedRoles={["ADMIN", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} redirectTo="/customer/negotiations" />}>
+        <Route path="/sales" element={<ProtectedRoute allowedRoles={["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} redirectTo="/customer/negotiations" />}>
           <Route element={<SalesLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             
             {/* Placeholders for next phases */}
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="customers" element={<CustomersPage />} />
-            <Route path="quotations" element={<QuotationBuilderPage />} />
+            <Route path="quotations" element={<QuotationListPage />} />
             <Route path="quotations/new" element={<QuotationBuilderPage />} />
             <Route path="quotations/:id/edit" element={<QuotationBuilderPage />} />
             <Route path="quotations/:id" element={<QuotationDetailsPage />} />
-            <Route path="approvals" element={<ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "FINANCE"]} />}>
+            <Route path="approvals" element={<ProtectedRoute allowedRoles={["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
               <Route index element={<ApprovalsPage />} />
             </Route>
             <Route path="orders" element={<OrdersPage />} />
-            <Route path="negotiation" element={<ProtectedRoute allowedRoles={["ADMIN", "SALESPERSON", "MANAGER"]} />}>
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="audit-logs" element={<AuditLogsPage />} />
+            <Route path="negotiation" element={<ProtectedRoute allowedRoles={["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
               <Route index element={<NegotiationPage />} />
               <Route path=":negotiationId" element={<NegotiationPage />} />
             </Route>
             
-            <Route path="/intelligence" element={<ProtectedRoute allowedRoles={["ADMIN", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
+            <Route path="intelligence" element={<ProtectedRoute allowedRoles={["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
               <Route index element={<IntelligenceDashboard />} />
               <Route path="health" element={<IntelligenceDashboard initialTab="health" />} />
               <Route path="rescue" element={<IntelligenceDashboard initialTab="rescue" />} />
@@ -78,7 +81,7 @@ function App() {
           <Route path=":negotiationId" element={<CustomerNegotiationPage />} />
         </Route>
 
-        <Route path="/fulfillment" element={<ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
+        <Route path="/fulfillment" element={<ProtectedRoute allowedRoles={["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
           <Route element={<FulfillmentRouteLayout />}>
             <Route index element={<FulfillmentDashboardPage />} />
             <Route path="orders/:orderId" element={<OrderFulfillmentDetailPage />} />

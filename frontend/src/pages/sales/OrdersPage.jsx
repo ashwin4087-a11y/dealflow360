@@ -53,6 +53,7 @@ export default function OrdersPage() {
                 <th>Total Value</th>
                 <th>Status</th>
                 <th>Created</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -63,11 +64,19 @@ export default function OrdersPage() {
                   <td>₹{o.items.reduce((total, item) => total + Number(item.lineTotal || 0), 0).toLocaleString("en-IN")}</td>
                   <td><span className="badge teal">Confirmed</span></td>
                   <td>{new Date(o.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <button 
+                      className="small-button" 
+                      onClick={() => window.location.href = `/fulfillment/orders/${o.id}`}
+                    >
+                      View Details
+                    </button>
+                  </td>
                 </tr>
               ))}
               {orders.length === 0 && !error && (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: "center", padding: "2rem" }}>
+                  <td colSpan="6" style={{ textAlign: "center", padding: "2rem" }}>
                     No orders found.
                   </td>
                 </tr>

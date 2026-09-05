@@ -13,6 +13,8 @@ import { createBackorderRouter } from "./routes/backorderRoutes.js";
 import { createNegotiationRouter } from "./routes/negotiationRoutes.js";
 import { createOrderRouter } from "./routes/orderRoutes.js";
 import { createIntelligenceRouter } from "./routes/intelligenceRoutes.js";
+import { createInvoiceRouter } from "./routes/invoiceRoutes.js";
+import { createSubscriptionRouter } from "./routes/subscriptionRoutes.js";
 
 export const createApp = (prismaClient) => {
   const app = express();
@@ -45,9 +47,14 @@ export const createApp = (prismaClient) => {
   app.use("/api/orders", createOrderRouter(prismaClient));
   app.use("/api/negotiations", createNegotiationRouter(prismaClient));
   app.use("/api", createIntelligenceRouter(prismaClient));
+  app.use("/api/invoices", createInvoiceRouter(prismaClient));
+  app.use("/api/subscriptions", createSubscriptionRouter(prismaClient));
 
   app.use((error, _req, res, _next) => {
     const statusCode = error.statusCode || 500;
+    if (statusCode === 500) {
+      console.error(error);
+    }
     res.status(statusCode).json({
       success: false,
       error: statusCode === 500 ? "Internal server error" : error.message,

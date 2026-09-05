@@ -17,9 +17,9 @@ export default function IntelligenceDashboard({ initialTab = 'health' }) {
 
   // Handle local navigation mapped to routes
   const handleNavigate = (tab) => {
-    if (tab === 'health') navigate('/intelligence/health');
-    else if (tab === 'rescue') navigate('/intelligence/rescue');
-    else if (tab === 'customer') navigate('/intelligence/customer');
+    if (tab === 'health') navigate('/sales/intelligence/health');
+    else if (tab === 'rescue') navigate('/sales/intelligence/rescue');
+    else if (tab === 'customer') navigate('/sales/intelligence/customer');
     else if (tab === 'negotiation') navigate('/sales/negotiation');
   };
 

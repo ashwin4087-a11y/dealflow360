@@ -8,7 +8,8 @@
     "start": "node src/server.js",
     "test": "node --test",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "prisma db seed"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",

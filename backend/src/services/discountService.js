@@ -2,7 +2,7 @@ const serviceError = (message, statusCode) =>
   Object.assign(new Error(message), { statusCode });
 
 const parsePercent = (value, field = "discountPercent") => {
-  if (typeof value !== "string" && typeof value !== "number") {
+  if (value === null || value === undefined) {
     throw serviceError(`${field} must be numeric`, 400);
   }
   const normalized = String(value).trim();

@@ -9,19 +9,19 @@ datasource db {
 // Shared schema foundation. Feature-specific models will be added together
 // so all three team members use the same IDs and relationships.
 model User {
-  id                 String            @id @default(cuid())
-  name               String
-  email              String            @unique
-  passwordHash       String?
-  role               UserRole          @default(SALESPERSON)
-  createdAt          DateTime          @default(now())
-  customerId         String?           @unique
-  customer           Customer?         @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  quotations         Quotation[]
-  requestedApprovals ApprovalRequest[] @relation("RequestedApprovals")
-  assignedApprovals  ApprovalRequest[] @relation("AssignedApprovals")
-  createdNegotiations Negotiation[]     @relation("CreatedNegotiations")
-  negotiationEvents  NegotiationEvent[] @relation("NegotiationActors")
+  id                  String             @id @default(cuid())
+  name                String
+  email               String             @unique
+  passwordHash        String?
+  role                UserRole           @default(SALESPERSON)
+  createdAt           DateTime           @default(now())
+  customerId          String?            @unique
+  customer            Customer?          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  quotations          Quotation[]
+  requestedApprovals  ApprovalRequest[]  @relation("RequestedApprovals")
+  assignedApprovals   ApprovalRequest[]  @relation("AssignedApprovals")
+  createdNegotiations Negotiation[]      @relation("CreatedNegotiations")
+  negotiationEvents   NegotiationEvent[] @relation("NegotiationActors")
 }
 
 enum UserRole {
@@ -46,19 +46,21 @@ enum QuotationStatus {
 }
 
 model Customer {
-  id              String      @id @default(cuid())
+  id              String         @id @default(cuid())
   name            String
   email           String?
   phone           String?
   company         String?
-  customerTier    String      @default("STANDARD") @map("tier")
+  customerTier    String         @default("STANDARD") @map("tier")
   billingAddress  String?
   shippingAddress String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   user            User?
   quotations      Quotation[]
   negotiations    Negotiation[]
+  invoices        Invoice[]
+  subscriptions   Subscription[]
 }
 
 model Product {
@@ -77,6 +79,7 @@ model Product {
   warehouseStocks WarehouseStock[]
   orderItems      OrderItem[]
   backorders      Backorder[]
+  subscriptions   Subscription[]
 }
 
 model PriceList {
@@ -197,11 +200,11 @@ model ApprovalRequest {
 }
 
 model Negotiation {
-  id                            String            @id @default(cuid())
+  id                            String             @id @default(cuid())
   quotationId                   String
   customerId                    String
   createdBy                     String
-  status                        NegotiationStatus @default(OPEN)
+  status                        NegotiationStatus  @default(OPEN)
   customerRequestedDiscount     Decimal?
   customerRequestedQuantity     Decimal?
   customerRequestedPaymentTerms String?
@@ -214,12 +217,12 @@ model Negotiation {
   calculatedSubtotal            Decimal?
   calculatedTotal               Decimal?
   calculatedMargin              Decimal?
-  approvalRequired              Boolean           @default(false)
-  createdAt                     DateTime          @default(now())
-  updatedAt                     DateTime          @updatedAt
-  quotation                     Quotation         @relation(fields: [quotationId], references: [id], onDelete: Cascade)
-  customer                      Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  creator                       User              @relation("CreatedNegotiations", fields: [createdBy], references: [id], onDelete: Restrict)
+  approvalRequired              Boolean            @default(false)
+  createdAt                     DateTime           @default(now())
+  updatedAt                     DateTime           @updatedAt
+  quotation                     Quotation          @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  customer                      Customer           @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  creator                       User               @relation("CreatedNegotiations", fields: [createdBy], references: [id], onDelete: Restrict)
   events                        NegotiationEvent[]
 
   @@index([quotationId])
@@ -251,6 +254,7 @@ model Order {
   quotation   Quotation   @relation(fields: [quotationId], references: [id], onDelete: Restrict)
   items       OrderItem[]
   backorders  Backorder[]
+  invoices    Invoice[]
 }
 
 model OrderItem {
@@ -348,7 +352,6 @@ enum ProductType {
   RECURRING
 }
 
-
 enum ApprovalStatus {
   PENDING
   APPROVED
@@ -384,4 +387,90 @@ enum NegotiationStatus {
   REJECTED
   ACCEPTED
   CLOSED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  customerId    String
+  orderId       String?
+  amount        Decimal       @db.Decimal(14, 2)
+  tax           Decimal       @db.Decimal(14, 2)
+  total         Decimal       @db.Decimal(14, 2)
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime
+  status        InvoiceStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  customer      Customer              @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  order         Order?                @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  items         InvoiceItem[]
+  payments      InvoicePayment[]
+  subscriptions SubscriptionPayment[]
+}
+
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  invoiceId String
+  name      String
+  amount    Decimal @db.Decimal(14, 2)
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model InvoicePayment {
+  id        String   @id @default(cuid())
+  invoiceId String
+  date      DateTime @default(now())
+  method    String
+  status    String   @default("Paid")
+  amount    Decimal  @db.Decimal(14, 2)
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  subscriptionNumber String             @unique
+  customerId         String
+  productId          String
+  billingCycle       BillingCycle       @default(MONTHLY)
+  amount             Decimal            @db.Decimal(14, 2)
+  startDate          DateTime           @default(now())
+  nextBillingDate    DateTime
+  status             SubscriptionStatus @default(ACTIVE)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  customer Customer              @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  product  Product               @relation(fields: [productId], references: [id], onDelete: Restrict)
+  payments SubscriptionPayment[]
+}
+
+model SubscriptionPayment {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  invoiceId      String?
+  date           DateTime @default(now())
+  amount         Decimal  @db.Decimal(14, 2)
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  invoice      Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 }

@@ -1,27 +1,52 @@
 import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import PageHeader from '../components/common/PageHeader';
-import { invoiceCatalog } from '../data/mockData';
+import { invoiceApi } from '../api/invoiceApi';
 
 function InvoiceDetailPage() {
   const { invoiceId } = useParams();
-  const invoice = invoiceCatalog.find((item) => item.id === invoiceId) ?? invoiceCatalog[0];
-  const subtotal = invoice.items.reduce((sum, item) => sum + item.amount, 0);
-  const taxable = subtotal + invoice.tax;
+  const [invoice, setInvoice] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    invoiceApi.getInvoice(invoiceId)
+      .then(res => {
+        if (active && res.success) {
+          setInvoice(res.data);
+        } else if (active) {
+          setError('Invoice not found');
+        }
+      })
+      .catch(err => {
+        if (active) setError('Failed to load invoice details.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, [invoiceId]);
+
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading invoice...</div>;
+  if (error || !invoice) return <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>{error || 'Invoice not found'}</div>;
+
+  const fmt = (val) => `₹${Number(val).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
   return (
     <>
-      <PageHeader title={`INVOICE #${invoice.id}`} />
+      <PageHeader title={`INVOICE #${invoice.invoiceNumber || invoice.id}`} />
 
       <div className="detail-layout">
         <section className="card summary-box">
           <div className="properties-grid">
             <div className="property-block">
               <label>Customer</label>
-              <div className="property-value">{invoice.customer}</div>
+              <div className="property-value">{invoice.customer?.name}</div>
             </div>
             <div className="property-block">
               <label>Order</label>
-              <div className="property-value">{invoice.order}</div>
+              <div className="property-value">{invoice.orderId || 'N/A'}</div>
             </div>
           </div>
 
@@ -38,12 +63,15 @@ function InvoiceDetailPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {invoice.items.map((item) => (
-                    <tr key={item.name}>
+                  {invoice.items?.map((item) => (
+                    <tr key={item.id || item.name}>
                       <td>{item.name}</td>
-                      <td>₹{item.amount.toLocaleString('en-IN')}</td>
+                      <td>{fmt(item.amount)}</td>
                     </tr>
                   ))}
+                  {(!invoice.items || invoice.items.length === 0) && (
+                    <tr><td colSpan="2" style={{ textAlign: 'center', padding: '1rem' }}>No items found.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -57,15 +85,15 @@ function InvoiceDetailPage() {
             </div>
             <div className="summary-row">
               <span className="summary-label">Tax</span>
-              <span className="summary-value">₹{invoice.tax.toLocaleString('en-IN')}</span>
+              <span className="summary-value">{fmt(invoice.tax)}</span>
             </div>
             <div className="summary-row">
               <span className="summary-label">Total</span>
-              <span className="summary-value">₹{invoice.total.toLocaleString('en-IN')}</span>
+              <span className="summary-value">{fmt(invoice.total)}</span>
             </div>
             <div className="summary-row">
               <span className="summary-label">Payment Status</span>
-              <span className="summary-value"><span className="badge status-paid">{invoice.paymentStatus}</span></span>
+              <span className="summary-value"><span className={`badge ${invoice.status === 'PAID' ? 'status-paid' : 'status-pending'}`}>{invoice.status}</span></span>
             </div>
           </div>
 
@@ -84,14 +112,17 @@ function InvoiceDetailPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {invoice.paymentHistory.map((item) => (
-                    <tr key={`${item.date}-${item.method}`}>
-                      <td>{item.date}</td>
+                  {invoice.payments?.map((item) => (
+                    <tr key={item.id}>
+                      <td>{new Date(item.date).toLocaleDateString()}</td>
                       <td>{item.method}</td>
                       <td><span className={`badge ${item.status === 'Paid' ? 'status-paid' : 'status-pending'}`}>{item.status}</span></td>
-                      <td>{item.amount}</td>
+                      <td>{fmt(item.amount)}</td>
                     </tr>
                   ))}
+                  {(!invoice.payments || invoice.payments.length === 0) && (
+                    <tr><td colSpan="4" style={{ textAlign: 'center', padding: '1rem' }}>No payments recorded.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>

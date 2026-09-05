@@ -1,47 +1,90 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
-import { orderCatalog } from '../data/mockData';
-
-const warehouseRows = [
-  { name: 'Warehouse A', available: 60, recommendation: 60, delivery: '2 days', shipping: '₹5,000' },
-  { name: 'Warehouse B', available: 40, recommendation: 40, delivery: '3 days', shipping: '₹3,500' },
-  { name: 'Warehouse C', available: 10, recommendation: 0, delivery: '5 days', shipping: '₹6,000' },
-];
+import { allocationApi, inventoryApi } from '../api/fulfillmentApi';
+import { orderApi } from '../api/orderApi';
 
 function WarehouseAllocationPage() {
   const { orderId } = useParams();
-  const order = orderCatalog.find((item) => item.id === orderId) ?? orderCatalog[0];
-  const initialState = useMemo(
-    () => ({
-      A: order.manualAllocation?.A ?? 60,
-      B: order.manualAllocation?.B ?? 40,
-      C: order.manualAllocation?.C ?? 0,
-    }),
-    [order],
-  );
-  const [allocation, setAllocation] = useState(initialState);
-  const total = allocation.A + allocation.B + allocation.C;
+  const [order, setOrder] = useState(null);
+  const [warehouses, setWarehouses] = useState([]);
+  const [allocations, setAllocations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const updateAllocation = (warehouse, value) => {
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      orderApi.getOrders(),
+      inventoryApi.getWarehouses(),
+      allocationApi.getOrderAllocations(orderId).catch(() => ({ success: true, data: [] })),
+    ]).then(([ordersRes, whRes, allocRes]) => {
+      if (!active) return;
+      const found = (ordersRes.data || []).find(o => o.id === orderId);
+      setOrder(found || null);
+      setWarehouses(whRes.data || []);
+      setAllocations(Array.isArray(allocRes.data) ? allocRes.data : []);
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
+  }, [orderId]);
+
+  // Build manual allocation state from warehouses
+  const initialState = useMemo(() => {
+    const state = {};
+    warehouses.forEach(wh => {
+      const existing = allocations.find(a => a.warehouseId === wh.id);
+      state[wh.id] = existing ? Number(existing.allocatedQuantity) : 0;
+    });
+    return state;
+  }, [warehouses, allocations]);
+
+  const [manualAllocation, setManualAllocation] = useState({});
+
+  useEffect(() => {
+    setManualAllocation(initialState);
+  }, [initialState]);
+
+  const total = Object.values(manualAllocation).reduce((sum, v) => sum + (Number(v) || 0), 0);
+
+  const updateAllocation = (warehouseId, value) => {
     const numeric = Number(value) || 0;
-    setAllocation((current) => ({ ...current, [warehouse]: numeric }));
-  };
-
-  const applyRecommendation = () => {
-    setAllocation({ A: 60, B: 40, C: 0 });
+    setManualAllocation(current => ({ ...current, [warehouseId]: numeric }));
   };
 
   const saveAllocation = () => {
-    if (total > 100) {
-      window.alert('Allocation total exceeds the required quantity for this order.');
+    if (!order || !order.items || !order.items.length) {
+      window.alert('No order items to allocate.');
+      return;
+    }
+    // For each warehouse with allocation > 0, call the replace API
+    const allocationData = Object.entries(manualAllocation)
+      .filter(([, qty]) => qty > 0)
+      .map(([warehouseId, allocatedQuantity]) => ({ warehouseId, allocatedQuantity: String(allocatedQuantity) }));
+
+    if (!allocationData.length) {
+      window.alert('No allocations specified.');
       return;
     }
 
-    window.alert('Allocation saved successfully.');
+    // Use the first order item for now
+    allocationApi.replace(order.items[0].id, { allocations: allocationData })
+      .then(() => window.alert('Allocation saved successfully.'))
+      .catch(err => window.alert('Failed to save: ' + err.message));
   };
 
-  const invalid = total > 100;
+  if (loading) {
+    return (
+      <>
+        <PageHeader title="Warehouse Allocation" />
+        <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
+      </>
+    );
+  }
+
+  const firstItem = order?.items?.[0];
+  const requiredQty = firstItem ? Number(firstItem.quantity) : 0;
+  const invalid = requiredQty > 0 && total > requiredQty;
 
   return (
     <>
@@ -51,15 +94,15 @@ function WarehouseAllocationPage() {
         <div className="form-grid">
           <div className="form-group">
             <label>Order</label>
-            <div className="property-value">{order.id}</div>
+            <div className="property-value">{order?.orderNumber || orderId}</div>
           </div>
           <div className="form-group">
             <label>Product</label>
-            <div className="property-value">Laptop Pro</div>
+            <div className="property-value">{firstItem?.productId || '—'}</div>
           </div>
           <div className="form-group">
             <label>Required</label>
-            <div className="property-value">100 units</div>
+            <div className="property-value">{requiredQty} units</div>
           </div>
           <div className="form-group">
             <label>Total Allocation</label>
@@ -78,54 +121,42 @@ function WarehouseAllocationPage() {
             <thead>
               <tr>
                 <th>Warehouse</th>
-                <th>Available Stock</th>
-                <th>Recommended Allocation</th>
+                <th>Location</th>
+                <th>Code</th>
                 <th>Manual Allocation</th>
-                <th>Delivery</th>
-                <th>Shipping</th>
               </tr>
             </thead>
             <tbody>
-              {warehouseRows.map((row) => (
-                <tr key={row.name}>
-                  <td>{row.name}</td>
-                  <td>{row.available}</td>
-                  <td>{row.recommendation}</td>
+              {warehouses.map((wh) => (
+                <tr key={wh.id}>
+                  <td>{wh.name}</td>
+                  <td>{wh.location || '—'}</td>
+                  <td>{wh.code}</td>
                   <td>
                     <input
                       className="text-input"
                       type="number"
                       min="0"
-                      value={allocation[row.name.split(' ')[1]]}
-                      onChange={(event) => updateAllocation(row.name.split(' ')[1], event.target.value)}
+                      value={manualAllocation[wh.id] || 0}
+                      onChange={(event) => updateAllocation(wh.id, event.target.value)}
                     />
                   </td>
-                  <td>{row.delivery}</td>
-                  <td>{row.shipping}</td>
                 </tr>
               ))}
+              {!warehouses.length && (
+                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '1rem' }}>No warehouses found.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
 
-        <div className="section-header" style={{ marginTop: '20px' }}>
-          <h3 className="section-title">SYSTEM RECOMMENDATION</h3>
-        </div>
-
-        <div className="summary-row">
-          <span className="summary-label">Warehouse A → 60</span>
-          <span className="summary-label">Warehouse B → 40</span>
-          <span className="summary-label">Total → 100</span>
-        </div>
-
         <div className="page-actions" style={{ marginTop: '18px' }}>
-          <button type="button" className="secondary-button" onClick={applyRecommendation}>Apply Recommendation</button>
           <button type="button" className="primary-button" onClick={saveAllocation}>Save Allocation</button>
         </div>
 
         {invalid && (
           <div style={{ marginTop: '14px', color: '#b93d42', fontWeight: 600 }}>
-            Total allocation exceeds available stock and cannot be saved.
+            Total allocation exceeds required quantity and cannot be saved.
           </div>
         )}
       </section>

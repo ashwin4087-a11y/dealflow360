@@ -2,7 +2,7 @@ import { Router } from "express";
 import { createNegotiationController } from "../controllers/negotiationController.js";
 import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 
-const ALL_NEGOTIATION_ROLES = ["ADMIN", "SALESPERSON", "MANAGER", "CUSTOMER"];
+const ALL_NEGOTIATION_ROLES = ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS", "CUSTOMER"];
 
 export const createNegotiationRouter = (prismaClient) => {
   const router = Router();

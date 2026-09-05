@@ -2,7 +2,7 @@ import { Router } from "express";
 import { createApprovalController } from "../controllers/approvalController.js";
 import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 
-const APPROVAL_ROLES = ["ADMIN", "MANAGER", "FINANCE"];
+const APPROVAL_ROLES = ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"];
 
 export const createApprovalRouter = (prismaClient) => {
   const router = Router();

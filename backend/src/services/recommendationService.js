@@ -1,10 +1,4 @@
-const INTERNAL_ROLES = new Set([
-  "ADMIN",
-  "SALESPERSON",
-  "MANAGER",
-  "FINANCE",
-  "OPERATIONS",
-]);
+const INTERNAL_ROLES = new Set(["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]);
 
 const error = (message, statusCode) => Object.assign(new Error(message), { statusCode });
 const money = (value) => (value === null || value === undefined ? null : String(value));

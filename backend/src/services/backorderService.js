@@ -1,4 +1,4 @@
-const INTERNAL_ROLES = ["ADMIN", "SALES", "MANAGER", "FINANCE", "OPERATIONS"];
+const INTERNAL_ROLES = ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"];
 const OPEN_STATUSES = ["BACKORDERED", "READY_TO_FULFILL"];
 
 const serviceError = (message, statusCode) =>

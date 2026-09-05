@@ -1,4 +1,4 @@
-const INTERNAL_ROLES = ["ADMIN", "SALES", "MANAGER", "FINANCE", "OPERATIONS"];
+const INTERNAL_ROLES = ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"];
 
 const serviceError = (message, statusCode) =>
   Object.assign(new Error(message), { statusCode });

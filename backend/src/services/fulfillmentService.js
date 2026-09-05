@@ -1,4 +1,4 @@
-const INTERNAL_ROLES = ["ADMIN", "SALES", "MANAGER", "FINANCE", "OPERATIONS"];
+const INTERNAL_ROLES = ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"];
 import { syncBackorderForOrderItem } from "./backorderService.js";
 
 const serviceError = (message, statusCode) =>

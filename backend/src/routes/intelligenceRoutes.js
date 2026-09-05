@@ -2,8 +2,8 @@ import { Router } from "express";
 import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 import { createIntelligenceController } from "../controllers/intelligenceController.js";
 
-const INTERNAL_ROLES = ["ADMIN", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"];
-const INTELLIGENCE_ROLES = ["ADMIN", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS", "CUSTOMER"];
+const INTERNAL_ROLES = ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"];
+const INTELLIGENCE_ROLES = ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS", "CUSTOMER"];
 
 export const createIntelligenceRouter = (prismaClient) => {
   const router = Router();
