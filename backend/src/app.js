@@ -4,6 +4,15 @@ import { createAuthRouter } from "./routes/authRoutes.js";
 import { createProductRouter } from "./routes/productRoutes.js";
 import { createCustomerRouter } from "./routes/customerRoutes.js";
 import { createQuotationRouter } from "./routes/quotationRoutes.js";
+import { createCustomerRouter } from "./routes/customerRoutes.js";
+import { createProductRouter } from "./routes/productRoutes.js";
+import { createQuotationRouter } from "./routes/quotationRoutes.js";
+import { createApprovalRouter } from "./routes/approvalRoutes.js";
+import { createCustomerQuotationRouter } from "./routes/customerQuotationRoutes.js";
+import { createInventoryRouter } from "./routes/inventoryRoutes.js";
+import { createAllocationRouter } from "./routes/allocationRoutes.js";
+import { createFulfillmentRouter } from "./routes/fulfillmentRoutes.js";
+import { createBackorderRouter } from "./routes/backorderRoutes.js";
 
 export const createApp = (prismaClient) => {
   const app = express();

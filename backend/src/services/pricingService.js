@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * Pricing Service
  *
@@ -79,4 +80,16 @@ export const calculateQuotationTotals = (lineItems, taxPercent) => {
     total,
     marginAmount,
   };
+=======
+import { getProduct } from "./productService.js";
+
+export const getProductPrice = async (prismaClient, productId) => {
+  const product = await getProduct(prismaClient, productId);
+  if (product.active !== true) {
+    const error = new Error("Inactive products are not available for sale");
+    error.statusCode = 400;
+    throw error;
+  }
+  return product.basePrice;
+>>>>>>> ae6d6e7f00f8e851438f6837c024c7a9822cb5d3
 };

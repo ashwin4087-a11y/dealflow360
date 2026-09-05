@@ -15,6 +15,8 @@ model User {
   passwordHash       String?
   role               UserRole          @default(SALESPERSON)
   createdAt          DateTime          @default(now())
+  customerId         String?           @unique
+  customer           Customer?         @relation(fields: [customerId], references: [id], onDelete: Restrict)
   quotations         Quotation[]
   requestedApprovals ApprovalRequest[] @relation("RequestedApprovals")
   assignedApprovals  ApprovalRequest[] @relation("AssignedApprovals")
@@ -40,22 +42,26 @@ model Customer {
   shippingAddress String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  user            User?
   quotations      Quotation[]
 }
 
 model Product {
-  id             String          @id @default(cuid())
-  name           String
-  sku            String          @unique
-  basePrice      Decimal         @map("price") @db.Decimal(12, 2)
-  category       String
-  description    String?
-  productType    ProductType     @default(ONE_TIME)
-  active         Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  quotationItems QuotationItem[]
-  priceListItems PriceListItem[]
+  id              String           @id @default(cuid())
+  name            String
+  sku             String           @unique
+  basePrice       Decimal          @map("price") @db.Decimal(12, 2)
+  category        String
+  description     String?
+  productType     ProductType      @default(ONE_TIME)
+  active          Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  quotationItems  QuotationItem[]
+  priceListItems  PriceListItem[]
+  warehouseStocks WarehouseStock[]
+  orderItems      OrderItem[]
+  backorders      Backorder[]
 }
 
 model PriceList {
@@ -109,16 +115,17 @@ model Quotation {
 }
 
 model QuotationItem {
-  id              String    @id @default(cuid())
+  id              String     @id @default(cuid())
   quotationId     String
   productId       String
-  quantity        Decimal   @db.Decimal(12, 2)
-  unitPrice       Decimal   @db.Decimal(12, 2)
-  discountPercent Decimal   @db.Decimal(5, 2)
-  discountAmount  Decimal   @db.Decimal(14, 2)
-  lineTotal       Decimal   @db.Decimal(14, 2)
-  quotation       Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
-  product         Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity        Decimal    @db.Decimal(12, 2)
+  unitPrice       Decimal    @db.Decimal(12, 2)
+  discountPercent Decimal    @db.Decimal(5, 2)
+  discountAmount  Decimal    @db.Decimal(14, 2)
+  lineTotal       Decimal    @db.Decimal(14, 2)
+  quotation       Quotation  @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  product         Product    @relation(fields: [productId], references: [id], onDelete: Restrict)
+  orderItem       OrderItem?
 
   @@index([productId])
 }
@@ -136,11 +143,28 @@ model DiscountRule {
   @@index([productCategory])
 }
 
+model ApprovalRule {
+  id                        String   @id @default(cuid())
+  name                      String
+  minBlendedDiscountPercent Decimal  @db.Decimal(5, 2)
+  requiresLineViolation     Boolean  @default(false)
+  requiresManager           Boolean  @default(true)
+  requiresFinance           Boolean  @default(false)
+  active                    Boolean  @default(true)
+  priority                  Int      @default(0)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@index([active, priority])
+  @@index([minBlendedDiscountPercent])
+}
+
 model ApprovalRequest {
   id            String         @id @default(cuid())
   quotationId   String
   requestedById String
   approverId    String?
+  approvalRole  ApprovalRole
   reason        String
   status        ApprovalStatus @default(PENDING)
   createdAt     DateTime       @default(now())
@@ -149,6 +173,7 @@ model ApprovalRequest {
   requestedBy   User           @relation("RequestedApprovals", fields: [requestedById], references: [id], onDelete: Restrict)
   approver      User?          @relation("AssignedApprovals", fields: [approverId], references: [id], onDelete: Restrict)
 
+  @@unique([quotationId, approvalRole])
   @@index([quotationId])
   @@index([requestedById])
   @@index([approverId])
@@ -156,12 +181,104 @@ model ApprovalRequest {
 }
 
 model Order {
-  id          String    @id @default(cuid())
-  orderNumber String    @unique
-  quotationId String    @unique
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Restrict)
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  quotationId String      @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  quotation   Quotation   @relation(fields: [quotationId], references: [id], onDelete: Restrict)
+  items       OrderItem[]
+  backorders  Backorder[]
+}
+
+model OrderItem {
+  id              String  @id @default(cuid())
+  orderId         String
+  quotationItemId String  @unique
+  productId       String
+  quantity        Int
+  unitPrice       Decimal @db.Decimal(14, 2)
+  lineTotal       Decimal @db.Decimal(14, 2)
+
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  quotationItem QuotationItem @relation(fields: [quotationItemId], references: [id], onDelete: Restrict)
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  allocations   Allocation[]
+  backorders    Backorder[]
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Warehouse {
+  id          String           @id @default(cuid())
+  name        String
+  code        String           @unique
+  location    String?
+  active      Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  stock       WarehouseStock[]
+  allocations Allocation[]
+}
+
+model WarehouseStock {
+  id                String    @id @default(cuid())
+  warehouseId       String
+  productId         String
+  availableQuantity Decimal   @default(0) @db.Decimal(12, 2)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  warehouse         Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  product           Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([warehouseId, productId])
+  @@index([productId])
+}
+
+model Allocation {
+  id                String       @id @default(cuid())
+  orderItemId       String
+  warehouseId       String
+  allocatedQuantity Decimal      @db.Decimal(12, 2)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  orderItem         OrderItem    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  warehouse         Warehouse    @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  fulfillment       Fulfillment?
+
+  @@unique([orderItemId, warehouseId])
+  @@index([warehouseId])
+}
+
+model Fulfillment {
+  id                String            @id @default(cuid())
+  allocationId      String            @unique
+  fulfilledQuantity Decimal           @default(0) @db.Decimal(12, 2)
+  status            FulfillmentStatus @default(ALLOCATED)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  allocation        Allocation        @relation(fields: [allocationId], references: [id], onDelete: Cascade)
+}
+
+model Backorder {
+  id                String          @id @default(cuid())
+  orderId           String
+  orderItemId       String
+  productId         String
+  requiredQuantity  Decimal         @db.Decimal(12, 2)
+  fulfilledQuantity Decimal         @default(0) @db.Decimal(12, 2)
+  remainingQuantity Decimal         @db.Decimal(12, 2)
+  status            BackorderStatus @default(BACKORDERED)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  order             Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem         OrderItem       @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  product           Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([orderItemId])
+  @@index([productId, status])
 }
 
 enum ProductType {
@@ -185,4 +302,24 @@ enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum ApprovalRole {
+  MANAGER
+  FINANCE
+}
+
+enum FulfillmentStatus {
+  PENDING
+  ALLOCATED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  CANCELLED
+}
+
+enum BackorderStatus {
+  BACKORDERED
+  READY_TO_FULFILL
+  FULFILLED
+  CANCELLED
 }

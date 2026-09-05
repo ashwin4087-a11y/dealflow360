@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -505,3 +506,19 @@ function NegotiationPage() { return <><PageHeader eyebrow="Revenue Intelligence 
 function OperationalPage({ title }) { return <><PageHeader eyebrow="Operations / Workspace" title={title} description="Operational workspace connected to the DealFlow360 revenue operating system." action="Create new" /><Section title="Workspace overview" icon={PanelLeft}><div className="empty-state"><Sparkles size={24} /><h2>Ready for connected data</h2><p>This view is prepared for REST API responses and currently uses the shared DealFlow360 mock workspace.</p><button className="primary-button">Create first record</button></div></Section></>; }
 
 createRoot(document.getElementById('root')).render(<AuthProvider><App /></AuthProvider>);
+=======
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App.jsx';
+import './styles.css';
+
+createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+);
+
+>>>>>>> ae6d6e7f00f8e851438f6837c024c7a9822cb5d3
