@@ -6,6 +6,7 @@ import { createProductRouter } from "./routes/productRoutes.js";
 import { createQuotationRouter } from "./routes/quotationRoutes.js";
 import { createApprovalRouter } from "./routes/approvalRoutes.js";
 import { createCustomerQuotationRouter } from "./routes/customerQuotationRoutes.js";
+import { createInventoryRouter } from "./routes/inventoryRoutes.js";
 
 export const createApp = (prismaClient) => {
   const app = express();
@@ -31,6 +32,7 @@ export const createApp = (prismaClient) => {
   app.use("/api/quotations", createQuotationRouter(prismaClient));
   app.use("/api/approvals", createApprovalRouter(prismaClient));
   app.use("/api/customer/quotations", createCustomerQuotationRouter(prismaClient));
+  app.use("/api/inventory", createInventoryRouter(prismaClient));
 
   app.use((error, _req, res, _next) => {
     const statusCode = error.statusCode || 500;
