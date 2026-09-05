@@ -9,6 +9,13 @@ const ORDER_FIELDS = {
   quotationId: true,
   createdAt: true,
   updatedAt: true,
+  items: {
+    select: {
+      id: true,
+      productId: true,
+      quantity: true,
+    },
+  },
 };
 
 export const convertQuotationToOrder = async (prismaClient, quotationId) => {
@@ -16,7 +23,17 @@ export const convertQuotationToOrder = async (prismaClient, quotationId) => {
     // 1. Find quotation and verify existence/status
     const quotation = await transaction.quotation.findUnique({
       where: { id: quotationId },
-      select: { id: true, status: true },
+      select: {
+        id: true,
+        status: true,
+        items: {
+          select: {
+            productId: true,
+            quantity: true,
+            product: { select: { id: true } },
+          },
+        },
+      },
     });
     
     if (!quotation) {
@@ -44,19 +61,33 @@ export const convertQuotationToOrder = async (prismaClient, quotationId) => {
     const randomSuffix = crypto.randomBytes(4).toString('hex').toUpperCase();
     const orderNumber = `ORD-${randomSuffix}`;
     
-    // 4. Update Quotation Status
-    await transaction.quotation.update({
-      where: { id: quotationId },
-      data: { status: "CONVERTED" },
-    });
-    
-    // 5. Create Order
+    // Create the order, its items, and the converted quotation atomically.
     const newOrder = await transaction.order.create({
       data: {
         orderNumber,
         quotationId,
+        items: {
+          create: quotation.items.map((item) => {
+            const quantity = Number(item.quantity);
+            if (!Number.isSafeInteger(quantity) || quantity <= 0) {
+              throw serviceError(
+                "Accepted quotation item quantities must be positive integers",
+                409,
+              );
+            }
+            return {
+              productId: item.product.id,
+              quantity,
+            };
+          }),
+        },
       },
       select: ORDER_FIELDS,
+    });
+
+    await transaction.quotation.update({
+      where: { id: quotationId },
+      data: { status: "CONVERTED" },
     });
     
     return newOrder;

@@ -7,6 +7,8 @@ process.env.JWT_SECRET = "test-secret";
 
 let quotations;
 let orders;
+let orderItems;
+let failAfterOrderCreate = false;
 let server;
 let baseUrl;
 
@@ -29,6 +31,14 @@ const jsonRequest = (path, method, body, userId = "user-1", role = "SALESPERSON"
       body: JSON.stringify(body),
     })
   );
+
+const createQuote = (id, status, items = []) => ({
+  id,
+  quotationNumber: `Q-${id}`,
+  customerId: "c-1",
+  status,
+  items,
+});
 
 const prismaMock = {
   user: {
@@ -64,29 +74,44 @@ const prismaMock = {
         quotationId: data.quotationId,
         createdAt: "2026-01-02T00:00:00.000Z",
         updatedAt: "2026-01-02T00:00:00.000Z",
+        items: (data.items?.create || []).map((item, index) => ({
+          id: `order-item-${Object.keys(orderItems).length + index + 1}`,
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
       };
       orders[newOrder.id] = newOrder;
+      for (const item of newOrder.items) orderItems[item.id] = item;
+      if (failAfterOrderCreate) throw new Error("Simulated transaction failure");
       return newOrder;
     }
   },
-  $transaction: async (callback) => callback(prismaMock),
+  $transaction: async (callback) => {
+    const quotationSnapshot = structuredClone(quotations);
+    const orderSnapshot = structuredClone(orders);
+    const orderItemSnapshot = structuredClone(orderItems);
+    try {
+      return await callback(prismaMock);
+    } catch (error) {
+      quotations = quotationSnapshot;
+      orders = orderSnapshot;
+      orderItems = orderItemSnapshot;
+      throw error;
+    }
+  },
 };
 
 before(async () => {
-  const createQuote = (id, status) => ({
-    id,
-    quotationNumber: `Q-${id}`,
-    customerId: "c-1",
-    status,
-  });
-
   quotations = {
     "q-draft": createQuote("q-draft", "DRAFT"),
     "q-pending": createQuote("q-pending", "PENDING_APPROVAL"),
     "q-approved": createQuote("q-approved", "APPROVED"),
     "q-sent": createQuote("q-sent", "SENT"),
     "q-rejected": createQuote("q-rejected", "REJECTED"),
-    "q-accepted": createQuote("q-accepted", "ACCEPTED"),
+    "q-accepted": createQuote("q-accepted", "ACCEPTED", [
+      { productId: "product-1", quantity: 60, product: { id: "product-1" } },
+      { productId: "product-2", quantity: 40, product: { id: "product-2" } },
+    ]),
     "q-accepted-2": createQuote("q-accepted-2", "ACCEPTED"), // For testing existing order protection
     "q-converted": createQuote("q-converted", "CONVERTED"),
     "q-cancelled": createQuote("q-cancelled", "CANCELLED"),
@@ -102,6 +127,7 @@ before(async () => {
       updatedAt: "2026-01-02T00:00:00.000Z",
     }
   };
+  orderItems = {};
 
   server = createApp(prismaMock).listen(0);
   await new Promise((resolve) => server.once("listening", resolve));
@@ -125,6 +151,12 @@ describe("ORDER CONVERSION", () => {
     
     // Backend generates orderNumber
     assert.ok(newOrder.orderNumber.startsWith("ORD-"));
+    assert.deepEqual(newOrder.items, [
+      { id: "order-item-1", productId: "product-1", quantity: 60 },
+      { id: "order-item-2", productId: "product-2", quantity: 40 },
+    ]);
+    assert.equal(orderItems["order-item-1"].productId, "product-1");
+    assert.equal(orderItems["order-item-2"].quantity, 40);
     
     // Quotation becomes CONVERTED
     assert.equal(quotations["q-accepted"].status, "CONVERTED");
@@ -132,7 +164,11 @@ describe("ORDER CONVERSION", () => {
 
   it("Client cannot override orderNumber during conversion", async () => {
     // Re-setup accepted quote just for testing this directly via a new state setup if we want
-    quotations["q-accepted-3"] = { id: "q-accepted-3", status: "ACCEPTED" };
+    quotations["q-accepted-3"] = {
+      id: "q-accepted-3",
+      status: "ACCEPTED",
+      items: [{ productId: "product-1", quantity: 1, product: { id: "product-1" } }],
+    };
     
     const response = await jsonRequest("/api/quotations/q-accepted-3/convert", "POST", { orderNumber: "MY-CUSTOM-ORD" });
     const body = await response.json();
@@ -173,6 +209,48 @@ describe("ORDER CONVERSION", () => {
     assert.equal(response.status, 409);
     const body = await response.json();
     assert.ok(body.error.includes("An order already exists"));
+  });
+
+  it("preserves duplicate quotation product lines as separate order items", async () => {
+    quotations["q-duplicate-products"] = createQuote("q-duplicate-products", "ACCEPTED", [
+      { productId: "product-1", quantity: 2, product: { id: "product-1" } },
+      { productId: "product-1", quantity: 3, product: { id: "product-1" } },
+    ]);
+    const response = await jsonRequest("/api/quotations/q-duplicate-products/convert", "POST", {
+      items: [{ productId: "client-product", quantity: 999 }],
+    });
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(body.data.items.map(({ productId, quantity }) => ({ productId, quantity })), [
+      { productId: "product-1", quantity: 2 },
+      { productId: "product-1", quantity: 3 },
+    ]);
+  });
+
+  it("rejects invalid quotation item quantities without creating an order", async () => {
+    quotations["q-invalid-items"] = createQuote("q-invalid-items", "ACCEPTED", [
+      { productId: "product-1", quantity: 0, product: { id: "product-1" } },
+    ]);
+    const response = await jsonRequest("/api/quotations/q-invalid-items/convert", "POST", {});
+    assert.equal(response.status, 409);
+    assert.equal(quotations["q-invalid-items"].status, "ACCEPTED");
+    assert.equal(Object.values(orders).some((order) => order.quotationId === "q-invalid-items"), false);
+  });
+
+  it("rolls back the order, items, and quotation when the transaction fails", async () => {
+    quotations["q-rollback"] = createQuote("q-rollback", "ACCEPTED", [
+      { productId: "product-1", quantity: 1, product: { id: "product-1" } },
+    ]);
+    const initialOrderItemCount = Object.keys(orderItems).length;
+    failAfterOrderCreate = true;
+    const response = await jsonRequest("/api/quotations/q-rollback/convert", "POST", {});
+    failAfterOrderCreate = false;
+
+    assert.equal(response.status, 500);
+    assert.equal(quotations["q-rollback"].status, "ACCEPTED");
+    assert.equal(Object.values(orders).some((order) => order.quotationId === "q-rollback"), false);
+    assert.equal(Object.keys(orderItems).length, initialOrderItemCount);
   });
 
   it("CUSTOMER receives 403", async () => {
