@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import SearchDropdown from "../common/SearchDropdown";
 import { 
   Menu, ChevronRight, Search, Bell, X, 
-  LayoutDashboard, FileText, ClipboardCheck, Boxes, Users, Gauge
+  LayoutDashboard, FileText, ClipboardCheck, Boxes, Users, Gauge, Target
 } from "lucide-react";
 
 export default function SalesLayout() {
@@ -22,8 +23,9 @@ export default function SalesLayout() {
     { label: "Customers", path: "/sales/customers", icon: Users },
     { label: "Quotations", path: "/sales/quotations", icon: FileText },
     { label: "Approvals", path: "/sales/approvals", icon: ClipboardCheck },
-    { label: "Orders", path: "/sales/orders", icon: Boxes }
-    ,{ label: "Intelligence", path: "/intelligence", icon: Gauge }
+    { label: "Orders", path: "/sales/orders", icon: Boxes },
+    { label: "Intelligence", path: "/intelligence", icon: Gauge },
+    { label: "Negotiation Intelligence", path: "/sales/negotiation", icon: Target }
   ];
 
   const activePath = location.pathname;
@@ -90,10 +92,7 @@ export default function SalesLayout() {
           </div>
           
           <div className="top-actions">
-            <label className="search-box">
-              <Search size={16} />
-              <input placeholder="Search..." />
-            </label>
+            <SearchDropdown />
             <span className="context-chip">Internal Mode</span>
           </div>
         </header>

@@ -23,7 +23,12 @@ export default function LoginPage() {
         throw new Error("Invalid authentication response");
       }
       login(result.token, result.user);
-      navigate("/sales/dashboard", { replace: true });
+      navigate(
+        result.user?.role === "CUSTOMER"
+          ? "/customer/negotiations"
+          : "/sales/dashboard",
+        { replace: true },
+      );
     } catch (err) {
       setError(err.message || "Failed to login. Please check your credentials.");
     } finally {

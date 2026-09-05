@@ -22,6 +22,8 @@ import InvoiceDetailPage from './pages/InvoiceDetailPage';
 import SubscriptionsPage from './pages/SubscriptionsPage';
 import SubscriptionDetailPage from './pages/SubscriptionDetailPage';
 import IntelligencePage from './pages/intelligence/MockApp';
+import NegotiationPage from './pages/sales/NegotiationPage';
+import CustomerNegotiationPage from './pages/customer/CustomerNegotiationPage';
 
 function FulfillmentRouteLayout() {
   return (
@@ -51,7 +53,12 @@ function App() {
             <Route path="quotations/:id" element={<QuotationDetailsPage />} />
             <Route path="approvals" element={<ApprovalsPage />} />
             <Route path="orders" element={<OrdersPage />} />
+            <Route path="negotiation" element={<NegotiationPage />} />
           </Route>
+        </Route>
+
+        <Route path="/customer/negotiations" element={<ProtectedRoute allowedRoles={["CUSTOMER"]} />}>
+          <Route element={<CustomerNegotiationPage />} />
         </Route>
 
         <Route path="/fulfillment" element={<ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "FINANCE", "OPERATIONS"]} />}>

@@ -1,12 +1,8 @@
 import jwt from "jsonwebtoken";
 
-const getJwtSecret = () => {
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET is not configured");
-  }
+const DEFAULT_JWT_SECRET = "dealflow360-dev-secret";
 
-  return process.env.JWT_SECRET;
-};
+const getJwtSecret = () => process.env.JWT_SECRET || DEFAULT_JWT_SECRET;
 
 export const signAccessToken = (user) =>
   jwt.sign({ sub: user.id, role: user.role }, getJwtSecret(), {

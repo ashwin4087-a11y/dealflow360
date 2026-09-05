@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-import { getCustomer } from "../services/customerService.js";
-
-export const createCustomerController = (prismaClient) => ({
-  getById: async (req, res, next) => {
-    try {
-      const customer = await getCustomer(prismaClient, req.params.id);
-      return res.json({ success: true, data: customer });
-    } catch (error) {
-      return next(error);
-=======
 import {
   createCustomer,
   getCustomer,
@@ -55,7 +44,6 @@ export const createCustomerController = (prismaClient) => ({
       });
     } catch (error) {
       next(error);
->>>>>>> ae6d6e7f00f8e851438f6837c024c7a9822cb5d3
     }
   },
 });

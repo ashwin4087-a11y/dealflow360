@@ -1,26 +1,3 @@
-<<<<<<< HEAD
-/**
- * Product Service
- * Queries the Product table through Prisma.
- */
-
-export const listProducts = async (prisma) => {
-  return prisma.product.findMany({
-    orderBy: { name: "asc" },
-  });
-};
-
-export const getProduct = async (prisma, id) => {
-  const product = await prisma.product.findUnique({ where: { id } });
-
-  if (!product) {
-    const error = new Error("Product not found");
-    error.statusCode = 404;
-    throw error;
-  }
-
-  return product;
-=======
 const PRODUCT_FIELDS = {
   id: true,
   name: true,
@@ -171,5 +148,4 @@ export const updateProduct = async (prismaClient, id, input) => {
     if (error?.code === "P2025") throw notFoundError();
     throw mapDatabaseError(error);
   }
->>>>>>> ae6d6e7f00f8e851438f6837c024c7a9822cb5d3
 };

@@ -1,0 +1,63 @@
+.negotiation-page-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 48px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.negotiation-page-state strong { color: var(--ink); font-size: 16px; }
+.error-state { color: #9b3442; }
+.negotiation-summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+.negotiation-summary-item { min-width: 0; padding: 14px; border: 1px solid #e1e8e6; border-radius: 5px; background: #fff; }
+.negotiation-summary-item span, .negotiation-summary-item small { display: block; color: var(--muted); font-size: 10px; }
+.negotiation-summary-item strong { display: block; margin: 9px 0 4px; color: var(--ink); font-size: 22px; }
+.negotiation-summary-item small { line-height: 1.35; }
+.summary-amber { color: #9b6b16 !important; }
+.summary-teal { color: #247161 !important; }
+.summary-blue { color: var(--primary) !important; }
+.negotiation-list-panel { overflow: hidden; }
+.muted-count { color: var(--muted); font-size: 11px; }
+.negotiation-table { min-width: 1040px; }
+.negotiation-table td { white-space: nowrap; }
+.negotiation-table td:nth-child(1), .negotiation-table td:nth-child(2) { white-space: normal; }
+.negotiation-status { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border: 1px solid #d7e3e0; border-radius: 4px; color: #466776; background: #f5faf8; font-size: 10px; font-weight: 700; }
+.status-pending_approval, .status-counteroffer_requested { border-color: #ecd9a8; color: #906719; background: #fff9e8; }
+.status-rejected { border-color: #efc6ca; color: #9b3442; background: #fff4f4; }
+.status-approved, .status-accepted, .status-closed { border-color: #b8dcd2; color: #247161; background: #edf8f4; }
+.negotiation-empty { display: flex; align-items: center; gap: 9px; padding: 34px 20px; color: var(--muted); font-size: 12px; }
+.negotiation-empty strong { color: var(--ink); font-size: 12px; font-weight: 500; }
+.negotiation-backbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; color: var(--muted); font-size: 11px; }
+.offer-grid, .impact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.negotiation-field { min-width: 0; padding: 10px; border: 1px solid #edf0ee; border-radius: 4px; background: #fafbf9; }
+.negotiation-field small { display: block; color: var(--muted); font-size: 9px; text-transform: uppercase; }
+.negotiation-field strong { display: block; margin-top: 6px; color: var(--ink); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+.negotiation-form-panel { min-width: 0; }
+.negotiation-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.negotiation-form-grid label { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 10px; font-weight: 600; }
+.negotiation-form-grid input, .negotiation-form-grid textarea { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--border); border-radius: 4px; color: var(--ink); background: #fff; font: inherit; font-size: 12px; }
+.negotiation-form-grid textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
+.negotiation-form-grid input:read-only, .negotiation-form-grid textarea:read-only { background: #f7f9f8; color: #71808c; }
+.wide-field { grid-column: 1 / -1; }
+.negotiation-form-actions, .sales-action-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+.sales-action-panel { align-items: flex-start; flex-direction: column; }
+.sales-action-panel small { color: var(--muted); font-size: 10px; line-height: 1.45; }
+.approval-callout { padding: 9px 10px; border: 1px solid #ecd9a8; border-radius: 4px; color: #906719; background: #fff9e8; font-size: 11px; font-weight: 700; }
+.manager-decision-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.reject-button { color: #9b3442; border-color: #efc6ca; }
+.rejection-form { display: grid; gap: 8px; width: 100%; padding-top: 4px; }
+.rejection-form label { display: grid; gap: 6px; color: var(--muted); font-size: 10px; font-weight: 600; }
+.rejection-form textarea { min-height: 70px; padding: 9px 10px; border: 1px solid #efc6ca; border-radius: 4px; color: var(--ink); background: #fff; font: inherit; font-size: 12px; resize: vertical; }
+.negotiation-history { display: grid; gap: 0; }
+.history-event { position: relative; display: flex; gap: 10px; min-height: 62px; }
+.history-event:not(:last-child)::before { position: absolute; top: 22px; bottom: 0; left: 10px; width: 1px; content: ""; background: #c9deda; }
+.history-marker { z-index: 1; display: grid; flex: 0 0 auto; place-items: center; width: 21px; height: 21px; border-radius: 50%; color: #fff; background: var(--primary); }
+.history-event strong { display: block; color: var(--ink); font-size: 12px; text-transform: capitalize; }
+.history-event small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+.history-event p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.4; }
+.feedback-error { border-color: #efc6ca; color: #9b3442; background: #fff4f4; }
+@media (max-width: 1100px) { .negotiation-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 780px) { .negotiation-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .negotiation-columns { grid-template-columns: 1fr; } .negotiation-form-grid, .offer-grid, .impact-grid { grid-template-columns: 1fr; } .wide-field { grid-column: auto; } .negotiation-backbar { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 480px) { .negotiation-summary { grid-template-columns: 1fr; } .negotiation-summary-item strong { font-size: 20px; } }
