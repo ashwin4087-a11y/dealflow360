@@ -1,139 +1,135 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Activity, AlertTriangle, Boxes, FileText, Users } from "lucide-react";
+import { approvalApi } from "../../api/approvalApi";
+import { customerApi } from "../../api/customerApi";
+import { productApi } from "../../api/productApi";
 import { quotationApi } from "../../api/quotationApi";
-import { Activity, FileText, CheckCircle, Clock } from "lucide-react";
+
+const QUOTATION_STATUSES = ["DRAFT", "PENDING_APPROVAL", "APPROVED", "SENT", "ACCEPTED", "REJECTED", "CONVERTED"];
+
+const statusTone = (status) => {
+  if (["ACCEPTED", "APPROVED", "CONVERTED"].includes(status)) return "teal";
+  if (status === "PENDING_APPROVAL") return "amber";
+  if (status === "REJECTED") return "red";
+  return "blue";
+};
+
+const displayCustomer = (quotation) => quotation.customer?.name || quotation.customer?.company || "Customer unavailable";
+const formatDate = (value) => (value ? new Date(value).toLocaleDateString() : "-");
+
+function Metric({ label, value, tone }) {
+  return (
+    <article className="metric">
+      <div className="metric-top"><span>{label}</span><em className={`badge ${tone}`}>API</em></div>
+      <strong>{value}</strong>
+    </article>
+  );
+}
 
 export default function DashboardPage() {
   const [quotations, setQuotations] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const response = await quotationApi.getQuotations();
-        if (response.success) {
-          setQuotations(response.data);
-        }
-      } catch (err) {
-        setError("Failed to load dashboard data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [quotationResponse, customerResponse, productResponse, approvalResponse] = await Promise.all([
+        quotationApi.getQuotations(),
+        customerApi.getCustomers(),
+        productApi.getProducts(),
+        approvalApi.getPendingApprovals(),
+      ]);
+      setQuotations(quotationResponse.data || []);
+      setCustomers(customerResponse.data || []);
+      setProducts(productResponse.data || []);
+      setApprovals(approvalResponse.data || []);
+    } catch (requestError) {
+      setError(requestError.message || "Unable to load dashboard data.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) return <div style={{ padding: "2rem" }}>Loading dashboard...</div>;
-  if (error) return <div style={{ padding: "2rem", color: "red" }}>{error}</div>;
+  useEffect(() => { loadDashboard(); }, [loadDashboard]);
 
-  const totalQuotes = quotations.length;
-  const draftQuotes = quotations.filter(q => q.status === "DRAFT").length;
-  const pendingQuotes = quotations.filter(q => q.status === "PENDING_APPROVAL").length;
-  const acceptedQuotes = quotations.filter(q => q.status === "ACCEPTED").length;
-  
-  // Example of using the existing Metric components (similar to main.jsx)
+  if (loading) return <div className="empty-state">Loading sales dashboard...</div>;
+  if (error) {
+    return (
+      <section className="panel empty-state">
+        <AlertTriangle size={24} />
+        <h2>Dashboard unavailable</h2>
+        <p>{error}</p>
+        <button className="primary-button" type="button" onClick={loadDashboard}>Retry</button>
+      </section>
+    );
+  }
+
+  const recentQuotations = quotations.slice(0, 10);
+
   return (
     <>
       <div className="page-header">
         <div>
           <div className="eyebrow">Core Sales / Overview</div>
           <h1>Sales Dashboard</h1>
-          <p>Real-time view of your active quotations and pipeline.</p>
+          <p>Backend-backed view of quotation activity, customers, products, and approvals.</p>
         </div>
-        <button className="primary-button" onClick={() => navigate("/sales/customers")}>
-          New Quotation
-        </button>
+        <button className="primary-button" type="button" onClick={() => navigate("/sales/customers")}>View customers</button>
       </div>
 
       <div className="metrics">
-        <article className="metric">
-          <div className="metric-top">
-            <span>Total Quotations</span>
-            <em className="badge blue">All time</em>
-          </div>
-          <strong>{totalQuotes}</strong>
-          <div className="meter"><i className="blue" style={{ width: "100%" }} /></div>
-        </article>
-
-        <article className="metric">
-          <div className="metric-top">
-            <span>Drafts</span>
-            <em className="badge gray">In progress</em>
-          </div>
-          <strong>{draftQuotes}</strong>
-          <div className="meter"><i className="gray" style={{ width: "50%" }} /></div>
-        </article>
-
-        <article className="metric">
-          <div className="metric-top">
-            <span>Pending Approval</span>
-            <em className="badge amber">Needs review</em>
-          </div>
-          <strong>{pendingQuotes}</strong>
-          <div className="meter"><i className="amber" style={{ width: "20%" }} /></div>
-        </article>
-
-        <article className="metric">
-          <div className="metric-top">
-            <span>Accepted</span>
-            <em className="badge teal">Won</em>
-          </div>
-          <strong>{acceptedQuotes}</strong>
-          <div className="meter"><i className="teal" style={{ width: "30%" }} /></div>
-        </article>
+        <Metric label="Total quotations" value={quotations.length} tone="blue" />
+        <Metric label="Customers" value={customers.length} tone="teal" />
+        <Metric label="Products" value={products.length} tone="blue" />
+        <Metric label="Pending approvals" value={approvals.length} tone="amber" />
       </div>
 
+      <section className="dashboard-status-grid">
+        {QUOTATION_STATUSES.map((status) => (
+          <article className="metric" key={status}>
+            <div className="metric-top"><span>{status.replaceAll("_", " ")}</span></div>
+            <strong>{quotations.filter((quotation) => quotation.status === status).length}</strong>
+          </article>
+        ))}
+      </section>
+
       <section className="panel">
-        <div className="section-heading">
-          <div>
-            <Activity size={16} />
-            <h2>Recent Quotations</h2>
-          </div>
-        </div>
+        <div className="section-heading"><div><Activity size={16} /><h2>Recent Quotations</h2></div></div>
         <div className="table-wrap">
           <table>
-            <thead>
-              <tr>
-                <th>Quote #</th>
-                <th>Status</th>
-                <th>Total Value</th>
-                <th>Created</th>
-                <th>Action</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Quote #</th><th>Customer</th><th>Status</th><th>Total</th><th>Created</th><th>Updated</th></tr></thead>
             <tbody>
-              {quotations.slice(0, 10).map((q) => (
-                <tr key={q.id}>
-                  <td>
-                    <strong>{q.quotationNumber}</strong>
-                  </td>
-                  <td>
-                    <span className={`badge ${q.status === 'ACCEPTED' ? 'teal' : q.status === 'DRAFT' ? 'gray' : q.status.includes('PENDING') ? 'amber' : 'blue'}`}>
-                      {q.status}
-                    </span>
-                  </td>
-                  <td>₹{parseFloat(q.totalAmount).toLocaleString()}</td>
-                  <td>{new Date(q.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <button className="small-button" onClick={() => navigate(`/sales/quotations/${q.id}`)}>
-                      View
-                    </button>
-                  </td>
+              {recentQuotations.map((quotation) => (
+                <tr key={quotation.id}>
+                  <td><button className="deal-link" type="button" onClick={() => navigate(`/sales/quotations/${quotation.id}`)}><strong>{quotation.quotationNumber || quotation.id}</strong></button></td>
+                  <td>{displayCustomer(quotation)}</td>
+                  <td><span className={`badge ${statusTone(quotation.status)}`}>{quotation.status}</span></td>
+                  <td>{quotation.total ?? "-"}</td>
+                  <td>{formatDate(quotation.createdAt)}</td>
+                  <td>{formatDate(quotation.updatedAt)}</td>
                 </tr>
               ))}
-              {quotations.length === 0 && (
-                <tr>
-                  <td colSpan="5" style={{ textAlign: "center", padding: "2rem" }}>
-                    No quotations found. Start by selecting a customer.
-                  </td>
-                </tr>
-              )}
+              {recentQuotations.length === 0 && <tr><td colSpan="6" className="empty-state">No quotations returned by the backend.</td></tr>}
             </tbody>
           </table>
         </div>
+      </section>
+
+      <div className="detail-columns">
+        <section className="panel"><div className="section-heading"><div><Users size={16} /><h2>Customer summary</h2></div></div><p>{customers.length ? `${customers.length} customers available in the customer workspace.` : "No customers returned by the backend."}</p><button className="secondary-button" type="button" onClick={() => navigate("/sales/customers")}>Open customers</button></section>
+        <section className="panel"><div className="section-heading"><div><Boxes size={16} /><h2>Product catalog</h2></div></div><p>{products.length ? `${products.length} products available from the product API.` : "No products returned by the backend."}</p><button className="secondary-button" type="button" onClick={() => navigate("/sales/quotations/new")}>Open quotation workspace</button></section>
+      </div>
+
+      <section className="panel">
+        <div className="section-heading"><div><FileText size={16} /><h2>Approval activity</h2></div></div>
+        {approvals.length === 0 ? <p>No approval activity returned for the current role.</p> : <div className="table-wrap"><table><thead><tr><th>Quotation</th><th>Role</th><th>Status</th><th>Created</th></tr></thead><tbody>{approvals.slice(0, 5).map((approval) => <tr key={approval.id}><td>{approval.quotation?.quotationNumber || approval.quotationId}</td><td>{approval.approvalRole}</td><td>{approval.status}</td><td>{formatDate(approval.createdAt)}</td></tr>)}</tbody></table></div>}
       </section>
     </>
   );

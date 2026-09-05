@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { createRoot } from 'react-dom/client';
 import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, BarChart3, Bell, Boxes, Check,
   ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, FileText, Filter, Gauge,
   LayoutDashboard, LogOut, MoreVertical, PackageCheck, PanelLeft, Search,
   ShieldCheck, Sparkles, Target, Truck, Users, X, Zap
 } from 'lucide-react';
-import './styles.css';
+import '../../styles.css';
 
 // ─── Storage keys (as specified in requirements) ───────────────────────────────
 const SK = {
@@ -1486,4 +1485,4 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+export default App;

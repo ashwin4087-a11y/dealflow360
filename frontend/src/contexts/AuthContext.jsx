@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { getAuthToken, removeAuthToken } from "../api/api";
+import { getAuthToken, removeAuthToken, setAuthToken } from "../api/api";
 
 const AuthContext = createContext();
 
@@ -7,18 +7,25 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Parse JWT token to get basic user info (optional, for displaying name/role if needed)
   const [user, setUser] = useState(null);
+
+  const readTokenUser = (token) => {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    if (typeof payload.sub !== "string" || typeof payload.role !== "string") {
+      throw new Error("Invalid token claims");
+    }
+    return { id: payload.sub, role: payload.role };
+  };
 
   useEffect(() => {
     const token = getAuthToken();
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUser({ id: payload.sub, role: payload.role });
+        setUser(readTokenUser(token));
         setIsAuthenticated(true);
-      } catch (err) {
+      } catch {
         removeAuthToken();
+        setUser(null);
       }
     }
     setLoading(false);
@@ -32,13 +39,16 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener("auth-expired", handleAuthExpired);
   }, []);
 
-  const login = (token) => {
+  const login = (token, authenticatedUser) => {
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      setUser({ id: payload.sub, role: payload.role });
+      setAuthToken(token);
+      setUser(authenticatedUser || readTokenUser(token));
       setIsAuthenticated(true);
-    } catch (e) {
-      console.error("Invalid token format");
+    } catch {
+      removeAuthToken();
+      setUser(null);
+      setIsAuthenticated(false);
+      throw new Error("Invalid authentication response");
     }
   };
 

@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { 
   Menu, ChevronRight, Search, Bell, X, 
-  LayoutDashboard, FileText, ClipboardCheck, Boxes, Users
+  LayoutDashboard, FileText, ClipboardCheck, Boxes, Users, Gauge
 } from "lucide-react";
 
 export default function SalesLayout() {
@@ -23,6 +23,7 @@ export default function SalesLayout() {
     { label: "Quotations", path: "/sales/quotations", icon: FileText },
     { label: "Approvals", path: "/sales/approvals", icon: ClipboardCheck },
     { label: "Orders", path: "/sales/orders", icon: Boxes }
+    ,{ label: "Intelligence", path: "/intelligence", icon: Gauge }
   ];
 
   const activePath = location.pathname;

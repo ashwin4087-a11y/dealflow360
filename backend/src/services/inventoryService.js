@@ -1,4 +1,5 @@
 const INTERNAL_ROLES = ["ADMIN", "SALES", "MANAGER", "FINANCE", "OPERATIONS"];
+import { fulfillEligibleBackorders } from "./backorderService.js";
 
 const serviceError = (message, statusCode) =>
   Object.assign(new Error(message), { statusCode });
@@ -180,6 +181,7 @@ export const receiveStock = async (
         update: { availableQuantity: { increment: normalizedQuantity } },
         select: STOCK_FIELDS,
       });
+      await fulfillEligibleBackorders(transaction, warehouseId, productId);
       return serializeStock(stock);
     });
   } catch (error) {

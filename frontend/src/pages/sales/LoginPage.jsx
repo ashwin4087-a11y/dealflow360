@@ -19,10 +19,11 @@ export default function LoginPage() {
     
     try {
       const result = await authApi.login(email, password);
-      if (result.success) {
-        login(result.token);
-        navigate("/sales/dashboard");
+      if (!result.success || !result.token) {
+        throw new Error("Invalid authentication response");
       }
+      login(result.token, result.user);
+      navigate("/sales/dashboard", { replace: true });
     } catch (err) {
       setError(err.message || "Failed to login. Please check your credentials.");
     } finally {

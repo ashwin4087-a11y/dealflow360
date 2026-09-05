@@ -12,8 +12,11 @@ const ORDER_FIELDS = {
   items: {
     select: {
       id: true,
+      quotationItemId: true,
       productId: true,
       quantity: true,
+      unitPrice: true,
+      lineTotal: true,
     },
   },
 };
@@ -28,8 +31,11 @@ export const convertQuotationToOrder = async (prismaClient, quotationId) => {
         status: true,
         items: {
           select: {
+            id: true,
             productId: true,
             quantity: true,
+            unitPrice: true,
+            lineTotal: true,
             product: { select: { id: true } },
           },
         },
@@ -76,8 +82,11 @@ export const convertQuotationToOrder = async (prismaClient, quotationId) => {
               );
             }
             return {
+              quotationItemId: item.id,
               productId: item.product.id,
               quantity,
+              unitPrice: item.unitPrice,
+              lineTotal: item.lineTotal,
             };
           }),
         },

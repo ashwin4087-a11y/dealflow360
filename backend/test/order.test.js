@@ -76,8 +76,11 @@ const prismaMock = {
         updatedAt: "2026-01-02T00:00:00.000Z",
         items: (data.items?.create || []).map((item, index) => ({
           id: `order-item-${Object.keys(orderItems).length + index + 1}`,
+          quotationItemId: item.quotationItemId,
           productId: item.productId,
           quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          lineTotal: item.lineTotal,
         })),
       };
       orders[newOrder.id] = newOrder;
@@ -109,8 +112,8 @@ before(async () => {
     "q-sent": createQuote("q-sent", "SENT"),
     "q-rejected": createQuote("q-rejected", "REJECTED"),
     "q-accepted": createQuote("q-accepted", "ACCEPTED", [
-      { productId: "product-1", quantity: 60, product: { id: "product-1" } },
-      { productId: "product-2", quantity: 40, product: { id: "product-2" } },
+      { id: "quote-item-1", productId: "product-1", quantity: 60, unitPrice: "500000.00", lineTotal: "30000000.00", product: { id: "product-1" } },
+      { id: "quote-item-2", productId: "product-2", quantity: 40, unitPrice: "1000.00", lineTotal: "40000.00", product: { id: "product-2" } },
     ]),
     "q-accepted-2": createQuote("q-accepted-2", "ACCEPTED"), // For testing existing order protection
     "q-converted": createQuote("q-converted", "CONVERTED"),
@@ -152,9 +155,12 @@ describe("ORDER CONVERSION", () => {
     // Backend generates orderNumber
     assert.ok(newOrder.orderNumber.startsWith("ORD-"));
     assert.deepEqual(newOrder.items, [
-      { id: "order-item-1", productId: "product-1", quantity: 60 },
-      { id: "order-item-2", productId: "product-2", quantity: 40 },
+      { id: "order-item-1", quotationItemId: "quote-item-1", productId: "product-1", quantity: 60, unitPrice: "500000.00", lineTotal: "30000000.00" },
+      { id: "order-item-2", quotationItemId: "quote-item-2", productId: "product-2", quantity: 40, unitPrice: "1000.00", lineTotal: "40000.00" },
     ]);
+    assert.equal(orderItems["order-item-1"].quotationItemId, "quote-item-1");
+    assert.equal(orderItems["order-item-1"].unitPrice, "500000.00");
+    assert.equal(orderItems["order-item-1"].lineTotal, "30000000.00");
     assert.equal(orderItems["order-item-1"].productId, "product-1");
     assert.equal(orderItems["order-item-2"].quantity, 40);
     
@@ -167,7 +173,7 @@ describe("ORDER CONVERSION", () => {
     quotations["q-accepted-3"] = {
       id: "q-accepted-3",
       status: "ACCEPTED",
-      items: [{ productId: "product-1", quantity: 1, product: { id: "product-1" } }],
+      items: [{ id: "quote-item-3", productId: "product-1", quantity: 1, unitPrice: "1.00", lineTotal: "1.00", product: { id: "product-1" } }],
     };
     
     const response = await jsonRequest("/api/quotations/q-accepted-3/convert", "POST", { orderNumber: "MY-CUSTOM-ORD" });
@@ -213,8 +219,8 @@ describe("ORDER CONVERSION", () => {
 
   it("preserves duplicate quotation product lines as separate order items", async () => {
     quotations["q-duplicate-products"] = createQuote("q-duplicate-products", "ACCEPTED", [
-      { productId: "product-1", quantity: 2, product: { id: "product-1" } },
-      { productId: "product-1", quantity: 3, product: { id: "product-1" } },
+      { id: "duplicate-item-1", productId: "product-1", quantity: 2, unitPrice: "500.00", lineTotal: "1000.00", product: { id: "product-1" } },
+      { id: "duplicate-item-2", productId: "product-1", quantity: 3, unitPrice: "450.00", lineTotal: "1350.00", product: { id: "product-1" } },
     ]);
     const response = await jsonRequest("/api/quotations/q-duplicate-products/convert", "POST", {
       items: [{ productId: "client-product", quantity: 999 }],
@@ -226,11 +232,15 @@ describe("ORDER CONVERSION", () => {
       { productId: "product-1", quantity: 2 },
       { productId: "product-1", quantity: 3 },
     ]);
+    assert.deepEqual(body.data.items.map(({ quotationItemId, unitPrice, lineTotal }) => ({ quotationItemId, unitPrice, lineTotal })), [
+      { quotationItemId: "duplicate-item-1", unitPrice: "500.00", lineTotal: "1000.00" },
+      { quotationItemId: "duplicate-item-2", unitPrice: "450.00", lineTotal: "1350.00" },
+    ]);
   });
 
   it("rejects invalid quotation item quantities without creating an order", async () => {
     quotations["q-invalid-items"] = createQuote("q-invalid-items", "ACCEPTED", [
-      { productId: "product-1", quantity: 0, product: { id: "product-1" } },
+      { id: "invalid-item", productId: "product-1", quantity: 0, unitPrice: "1.00", lineTotal: "0.00", product: { id: "product-1" } },
     ]);
     const response = await jsonRequest("/api/quotations/q-invalid-items/convert", "POST", {});
     assert.equal(response.status, 409);
@@ -240,7 +250,7 @@ describe("ORDER CONVERSION", () => {
 
   it("rolls back the order, items, and quotation when the transaction fails", async () => {
     quotations["q-rollback"] = createQuote("q-rollback", "ACCEPTED", [
-      { productId: "product-1", quantity: 1, product: { id: "product-1" } },
+      { id: "rollback-item", productId: "product-1", quantity: 1, unitPrice: "1.00", lineTotal: "1.00", product: { id: "product-1" } },
     ]);
     const initialOrderItemCount = Object.keys(orderItems).length;
     failAfterOrderCreate = true;
