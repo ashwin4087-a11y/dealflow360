@@ -1,0 +1,654 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>DealFlow360 Enterprise Revenue Operations</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { font-family: 'Inter', sans-serif; }
+    }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              primary: "#3368A0",
+              secondary: "#66A3BF",
+              accent: "#C8DFDB",
+              bg: "#F2EFE7",
+              dark: "#1E293B"
+            },
+            borderLight: "#E2E8F0"
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#F2EFE7] text-[#1E293B] antialiased min-h-screen">
+<!-- Left Navigation Sidebar -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-white z-50 flex flex-col border-r border-[#E2E8F0] shadow-sm">
+<!-- Brand Header with Image 10 Logo -->
+<div class="h-16 px-5 flex items-center gap-3 border-b border-[#E2E8F0] shrink-0 bg-white">
+<img alt="DealFlow360 Logo" class="w-8 h-8 rounded object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxPgx0aH0HWdLNulaq35HU2bucJPPFpH295G66erTMU_2MiyKdSA0tfVna92A86cIi1MTJ6Ft8lVFzQZ3JXMBOSVcgKsne6Vp3M7e7hseYH90tjnAVLniUzO5y5rCVbVAGHqy9PgRl1RH0UcPyEms4NqASZY0Uy-acj4ClKXd7Cmt-P_bdLBsvwr00eRcUaeSUxp3VHCcHgRQDbDOUe_IJ3IdoFBfmjV1EofT_UJUTqEn6c_GpdvIJ8z6VwAGBz3U2mQ">
+<div class="flex flex-col">
+<span class="text-[15px] font-bold text-[#1E293B] tracking-tight leading-none">DealFlow360</span>
+<span class="text-[10px] text-slate-400 uppercase tracking-wider mt-1 font-semibold">Revenue Ops Core</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+<!-- Group 1 -->
+<div class="space-y-1">
+<div class="px-3 py-1 text-[11px] font-semibold tracking-wider uppercase text-slate-400">Sales &amp; Quotation</div>
+<nav class="space-y-0.5">
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">dashboard</span>
+<span class="">Sales Dashboard</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">request_quote</span>
+<span class="">Quotes &amp; Pricing</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">verified</span>
+<span class="">Discount Approvals</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">description</span>
+<span class="">Contracts &amp; Terms</span>
+</a>
+</nav>
+</div>
+<!-- Group 2 -->
+<div class="space-y-1">
+<div class="px-3 py-1 text-[11px] font-semibold tracking-wider uppercase text-slate-400">Fulfillment &amp; Billing</div>
+<nav class="space-y-0.5">
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">inventory_2</span>
+<span class="">Fulfillment Dashboard</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">local_shipping</span>
+<span class="">Orders &amp; Allocation</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">warehouse</span>
+<span class="">Warehouse &amp; Inventory</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">pending_actions</span>
+<span class="">Backorders</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">receipt_long</span>
+<span class="">Billing &amp; Invoices</span>
+</a>
+</nav>
+</div>
+<!-- Group 3 -->
+<div class="space-y-1">
+<div class="px-3 py-1 text-[11px] font-semibold tracking-wider uppercase text-slate-400">Revenue Intelligence</div>
+<nav class="space-y-0.5">
+<!-- Active Highlighted Item in #3368A0 with white text -->
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-semibold bg-[#3368A0] text-white shadow-sm" href="#">
+<span class="material-symbols-outlined text-[18px] text-white">radar</span>
+<span class="">Deal Health Radar</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">emergency</span>
+<span class="">Deal Rescue</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">query_stats</span>
+<span class="">Customer Insights</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">psychology</span>
+<span class="">Negotiation Intelligence</span>
+</a>
+</nav>
+</div>
+<!-- Group 4 -->
+<div class="space-y-1">
+<div class="px-3 py-1 text-[11px] font-semibold tracking-wider uppercase text-slate-400">System &amp; Governance</div>
+<nav class="space-y-0.5">
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">monitoring</span>
+<span class="">Analytics &amp; Forecasts</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">rule</span>
+<span class="">Approval Rules</span>
+</a>
+<a class="flex items-center gap-2.5 px-3 py-2 rounded text-[13px] font-medium text-slate-600 hover:bg-[#F2EFE7]/80 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-slate-400">history</span>
+<span class="">Audit Logs</span>
+</a>
+</nav>
+</div>
+</div>
+<!-- User Profile Footer -->
+<div class="p-3 border-t border-[#E2E8F0] bg-white shrink-0">
+<div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-[#E2E8F0]">
+<div class="flex items-center gap-2.5 min-w-0">
+<img alt="Sarah Jenkins" class="w-8 h-8 rounded-full object-cover shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1VDDZvjIGjOL6jn2wZW1wIU2HYRaKbHKOspP24VGKYlwiLx6rg69sjBUNER_xTquPQQdTeW2y-xKUhTovIhu6kFdWHulZ2ZiCdrORvm9SK1gUTpqqDNZKwUXL1aQO_wPkByncU5cgGPKt3d-p2kLtq6YImIkgL0tVyYXcCwdDwHsEjLiKaut1G0frm79dXQhX6BRh5nVFwbIiXK77IIL_qRYD64bF8ETATOXjYaUb09gSR_VogCo7xcZOBWCzvxupuI4XHt3lbS">
+<div class="flex flex-col truncate">
+<span class="text-[13px] font-semibold text-[#1E293B] truncate leading-tight">Sarah Jenkins</span>
+<span class="text-[11px] text-slate-500 truncate">RevOps Director</span>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-700 p-0.5" title="User Settings">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<div class="pl-64">
+<!-- Top Header Bar -->
+<header class="fixed top-0 left-64 right-0 h-16 bg-white z-40 border-b border-[#E2E8F0] px-6 flex items-center justify-between gap-4">
+<div class="flex items-center gap-2 text-[13px] text-slate-500 font-medium">
+<span class="hover:text-slate-800 cursor-pointer">Revenue Intelligence</span>
+<span class="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+<span class="text-[#1E293B] font-semibold">Deal Health Radar</span>
+</div>
+<div class="flex-1 max-w-md mx-4">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">search</span>
+<input class="w-full h-9 pl-9 pr-12 bg-slate-50 border border-[#E2E8F0] rounded text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#3368A0] transition-colors" placeholder="Search accounts, deals, telemetry..." type="text">
+<kbd class="absolute right-2 px-1.5 py-0.5 bg-white border border-[#E2E8F0] rounded text-[10px] text-slate-400 font-medium">⌘K</kbd>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0"><div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#E2E8F0] bg-slate-50 text-[12px] font-medium text-slate-700"><span class="font-semibold text-slate-900">INR (₹)</span><span class="text-slate-400">•</span><span class="text-slate-600">Global Enterprise</span></div><button class="relative p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded border border-[#E2E8F0] transition-colors flex items-center justify-center" title="Notifications"><span class="material-symbols-outlined text-[18px]">notifications</span><span class="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-red-500"></span></button><button class="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#3368A0] hover:bg-[#285380] text-white rounded text-[13px] font-semibold transition-colors shadow-sm"><span class="material-symbols-outlined text-[18px]">bolt</span><span class="">Trigger Automated Rescue</span></button><div class="flex items-center pl-2 border-l border-[#E2E8F0]"><img alt="Sarah Jenkins" class="w-8 h-8 rounded-full object-cover border border-[#E2E8F0]" src="https://lh3.googleusercontent.com/aida/AEtjO1VDDZvjIGjOL6jn2wZW1wIU2HYRaKbHKOspP24VGKYlwiLx6rg69sjBUNER_xTquPQQdTeW2y-xKUhTovIhu6kFdWHulZ2ZiCdrORvm9SK1gUTpqqDNZKwUXL1aQO_wPkByncU5cgGPKt3d-p2kLtq6YImIkgL0tVyYXcCwdDwHsEjLiKaut1G0frm79dXQhX6BRh5nVFwbIiXK77IIL_qRYD64bF8ETATOXjYaUb09gSR_VogCo7xcZOBWCzvxupuI4XHt3lbS"></div></div>
+</header>
+<!-- Page Body -->
+<main class="pt-20 px-8 pb-12 space-y-6">
+<!-- 2. Page Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
+<div class="space-y-1">
+<h1 class="text-[28px] font-semibold text-[#1E293B] leading-tight">Deal Health Intelligence &amp; Revenue Rescue</h1>
+<p class="text-[14px] text-slate-600 max-w-3xl">
+            AI-driven risk detection, margin erosion alerts, velocity tracking, and automated rescue actions across all active enterprise revenue pipelines.
+          </p>
+</div>
+<div class="flex items-center gap-2.5 shrink-0">
+<button class="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-[#E2E8F0] rounded text-[13px] font-medium transition-colors">
+<span class="material-symbols-outlined text-[17px] text-slate-500">tune</span>
+<span class="">Configure Trigger Rules</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-[#E2E8F0] rounded text-[13px] font-medium transition-colors">
+<span class="material-symbols-outlined text-[17px] text-slate-500">file_download</span>
+<span class="">Export Risk Digest</span>
+</button>
+</div>
+</div>
+<!-- 3. Health KPI Summary Row (4 clean metric cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"><!-- Card 1: Healthy Deals -->
+<div class="bg-white p-5 rounded border border-[#E2E8F0] shadow-sm flex flex-col justify-between h-full">
+  <div>
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-[13px] font-medium text-slate-500">Healthy Deals</span>
+      <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#C8DFDB]/40 text-[#20647e]">Score 75–100</span>
+    </div>
+    <div class="text-[28px] font-bold text-[#1E293B] tabular-nums tracking-tight">42 Deals</div>
+    <div class="text-[12px] text-slate-500 mt-1 leading-snug">On-track velocity • Stable margins (&gt;58%)</div>
+  </div>
+  <div class="w-full bg-slate-100 rounded-full h-1.5 mt-4">
+    <div class="bg-[#3368A0] h-1.5 rounded-full" style="width: 66%;"></div>
+  </div>
+</div>
+<!-- Card 2: At-Risk Deals -->
+<div class="bg-white p-5 rounded border border-[#E2E8F0] shadow-sm flex flex-col justify-between h-full">
+  <div>
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-[13px] font-medium text-slate-500">At-Risk Deals</span>
+      <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Score 50–74</span>
+    </div>
+    <div class="text-[28px] font-bold text-[#1E293B] tabular-nums tracking-tight">14 Deals</div>
+    <div class="text-[12px] text-slate-500 mt-1 leading-snug">Warning flags on backorders or legal redlines</div>
+  </div>
+  <div class="w-full bg-slate-100 rounded-full h-1.5 mt-4">
+    <div class="bg-amber-500 h-1.5 rounded-full" style="width: 22%;"></div>
+  </div>
+</div>
+<!-- Card 3: Critical Deals -->
+<div class="bg-white p-5 rounded border border-[#E2E8F0] shadow-sm flex flex-col justify-between h-full">
+  <div>
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-[13px] font-medium text-slate-500">Critical Deals</span>
+      <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Score &lt;50</span>
+    </div>
+    <div class="text-[28px] font-bold text-red-600 tabular-nums tracking-tight">8 Deals</div>
+    <div class="text-[12px] text-slate-500 mt-1 leading-snug">Severe discount pressure or stalled stakeholder</div>
+  </div>
+  <div class="w-full bg-slate-100 rounded-full h-1.5 mt-4">
+    <div class="bg-red-600 h-1.5 rounded-full" style="width: 12%;"></div>
+  </div>
+</div>
+<!-- Card 4: Revenue Protected -->
+<div class="bg-white p-5 rounded border border-[#E2E8F0] shadow-sm flex flex-col justify-between h-full">
+  <div>
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-[13px] font-medium text-[#3368A0]">Revenue Protected</span>
+      <span class="material-symbols-outlined text-[#3368A0] text-[20px]">shield</span>
+    </div>
+    <div class="text-[28px] font-bold text-[#1E293B] tabular-nums tracking-tight">₹12.40 Cr</div>
+    <div class="text-[12px] text-slate-600 mt-1 font-medium leading-snug">Protected This Quarter</div>
+  </div>
+  <div class="flex items-center gap-1.5 text-[12px] font-medium text-emerald-700 pt-3 border-t border-slate-100 mt-3">
+    <span class="material-symbols-outlined text-[15px]">verified</span>
+    <span class="">8 deals successfully rescued (+28%)</span>
+  </div>
+</div></div>
+<!-- 4. Rescue Methodology Stepper Strip -->
+<div class="bg-white p-4 rounded border border-[#E2E8F0]">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#3368A0] text-[18px]">alt_route</span>
+<span class="text-[13px] font-semibold text-[#1E293B]">Integrated Deal Health &amp; Automated Rescue Loop</span>
+</div>
+<span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Continuous Autonomous Telemetry</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+<!-- Step 1 -->
+<div class="flex items-center gap-2.5 p-2 rounded bg-slate-50 border border-[#E2E8F0]">
+<div class="w-6 h-6 rounded bg-[#3368A0] text-white flex items-center justify-center text-[12px] font-bold shrink-0">1</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[12px] font-semibold text-[#1E293B] truncate">Identify Risk</span>
+<span class="text-[11px] text-slate-500 truncate">Signal Telemetry</span>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex items-center gap-2.5 p-2 rounded bg-slate-50 border border-[#E2E8F0]">
+<div class="w-6 h-6 rounded bg-[#3368A0] text-white flex items-center justify-center text-[12px] font-bold shrink-0">2</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[12px] font-semibold text-[#1E293B] truncate">Explain Risk</span>
+<span class="text-[11px] text-slate-500 truncate">Root Cause Analysis</span>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex items-center gap-2.5 p-2 rounded bg-slate-50 border border-[#E2E8F0]">
+<div class="w-6 h-6 rounded bg-[#3368A0] text-white flex items-center justify-center text-[12px] font-bold shrink-0">3</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[12px] font-semibold text-[#1E293B] truncate">Recommend Action</span>
+<span class="text-[11px] text-slate-500 truncate">Prescriptive Playbook</span>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="flex items-center gap-2.5 p-2 rounded bg-[#C8DFDB]/30 border border-[#C8DFDB]">
+<div class="w-6 h-6 rounded bg-[#3368A0] text-white flex items-center justify-center text-[12px] font-bold shrink-0">4</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[12px] font-semibold text-[#1E293B] truncate">Take Action</span>
+<span class="text-[11px] text-[#20647e] font-medium truncate">1-Click Execution</span>
+</div>
+</div>
+<!-- Step 5 -->
+<div class="flex items-center gap-2.5 p-2 rounded bg-slate-50 border border-[#E2E8F0]">
+<div class="w-6 h-6 rounded bg-slate-300 text-slate-700 flex items-center justify-center text-[12px] font-bold shrink-0">5</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[12px] font-semibold text-[#1E293B] truncate">Track Outcome</span>
+<span class="text-[11px] text-slate-500 truncate">Telemetry &amp; SLA Guard</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 5. Primary Active Case Investigation (Structured 2-column view for High-Urgency Case) -->
+<div class="bg-white rounded border border-[#E2E8F0] p-6 shadow-sm space-y-6">
+  <!-- Case Top Bar -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[#E2E8F0]">
+    <div class="space-y-1">
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="px-2.5 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-red-100 text-red-700">Active High-Urgency Case</span>
+        <span class="text-[12px] text-slate-400 font-mono">Deal ID: DEAL-HL-8834</span>
+      </div>
+      <h2 class="text-[20px] font-semibold text-[#1E293B] tracking-tight">Helios Health System — Enterprise Diagnostics Cloud</h2>
+      <div class="flex flex-wrap items-center gap-3 text-[13px] text-slate-500 pt-0.5">
+        <span class="">Account: <strong class="text-slate-800 font-medium">Helios Health (Tier 1 Strategic)</strong></span>
+        <span class="text-slate-300">•</span>
+        <span class="">AE: <strong class="text-slate-800 font-medium">Marcus Vance</strong></span>
+        <span class="text-slate-300">•</span>
+        <span class="">Pipeline Stage: <strong class="text-slate-800 font-medium">Stage 4 Final Negotiation</strong></span>
+      </div>
+    </div>
+    <!-- Health Alert Badge -->
+    <div class="flex items-center gap-3.5 bg-red-50 border border-red-200 px-4 py-2.5 rounded shrink-0">
+      <div class="text-right">
+        <div class="text-[12px] font-bold uppercase tracking-wider text-red-700">Critical Alert</div>
+        <div class="text-[11px] text-red-600 font-medium">Velocity Dropped 42%</div>
+      </div>
+      <div class="w-12 h-12 rounded-full border-2 border-red-500 flex items-center justify-center text-[18px] font-bold text-red-700 bg-white tabular-nums shadow-sm">
+        48
+      </div>
+    </div>
+  </div>
+  <!-- 2 Column Layout: Left (Root Cause) vs Right (Recommended Playbook) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- Left Column (Root Cause Breakdown - 5 cols) -->
+    <div class="lg:col-span-5 space-y-3">
+      <div class="text-[12px] font-bold tracking-wider uppercase text-slate-500 flex items-center justify-between">
+        <span class="">Root Cause Telemetry Breakdown</span>
+        <span class="text-[11px] font-normal text-slate-400">3 Signals Detected</span>
+      </div>
+      <!-- Root Cause 1 -->
+      <div class="p-4 rounded border border-[#E2E8F0] bg-slate-50/80 space-y-2">
+        <div class="flex items-center justify-between text-red-700">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">warehouse</span>
+            <span class="text-[13px] font-semibold text-slate-900">Warehouse Shortage</span>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-red-700">Critical</span>
+        </div>
+        <p class="text-[12.5px] text-slate-600 leading-relaxed">
+          Order component <strong class="text-slate-900 font-medium">OptiSensor Pro-4</strong> has a 14-day backorder in WH-01 (Chicago), directly stalling clinical pilot milestone.
+        </p>
+        <div class="pt-1 flex items-center gap-1.5 text-[11px] font-medium text-[#3368A0]">
+          <span class="material-symbols-outlined text-[14px]">link</span>
+          <a class="hover:underline" href="#">Linked: WH-01 Backorder Queue</a>
+        </div>
+      </div>
+      <!-- Root Cause 2 -->
+      <div class="p-4 rounded border border-[#E2E8F0] bg-slate-50/80 space-y-2">
+        <div class="flex items-center justify-between text-amber-700">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">percent</span>
+            <span class="text-[13px] font-semibold text-slate-900">Margin Concession Pressure</span>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-amber-50 text-amber-700 border border-amber-200">Warning</span>
+        </div>
+        <p class="text-[12.5px] text-slate-600 leading-relaxed">
+          Procurement requesting an additional <strong class="text-slate-900 font-medium">₹8,16,000 discount</strong> to compensate for delayed deployment schedule.
+        </p>
+        <div class="pt-1 flex items-center gap-1.5 text-[11px] font-medium text-[#3368A0]">
+          <span class="material-symbols-outlined text-[14px]">link</span>
+          <a class="hover:underline" href="#">Linked: Quote Q-9480</a>
+        </div>
+      </div>
+      <!-- Root Cause 3 -->
+      <div class="p-4 rounded border border-[#E2E8F0] bg-slate-50/80 space-y-2">
+        <div class="flex items-center justify-between text-slate-700">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">person_off</span>
+            <span class="text-[13px] font-semibold text-slate-900">Stakeholder Stagnation</span>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-200 text-slate-700">Moderate</span>
+        </div>
+        <p class="text-[12.5px] text-slate-600 leading-relaxed">
+          VP of IT inactive across last 2 sprint check-ins. Internal champion sentiment scored <strong class="text-slate-900 font-medium">Neutral (44/100)</strong>.
+        </p>
+        <div class="pt-1 flex items-center gap-1 text-[11px] font-medium text-slate-500">
+          <span class="">Account Stakeholder: Dr. Angela Vance (CIO)</span>
+        </div>
+      </div>
+    </div>
+    <!-- Right Column (Recommended Rescue Playbook - 7 cols) -->
+    <div class="lg:col-span-7 space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="text-[12px] font-bold tracking-wider uppercase text-slate-500">Recommended Rescue Playbook</div>
+        <span class="text-[12px] font-semibold text-[#3368A0] bg-[#C8DFDB]/30 px-2 py-0.5 rounded">Target Margin Preservation: 62%</span>
+      </div>
+      <!-- Action Step 1 -->
+      <div class="p-4 rounded border border-[#E2E8F0] bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:border-[#3368A0]/50">
+        <div class="flex items-start gap-3 min-w-0">
+          <div class="w-7 h-7 rounded-full bg-[#66A3BF]/20 text-[#3368A0] font-bold text-[13px] flex items-center justify-center shrink-0 mt-0.5">1</div>
+          <div class="space-y-0.5 min-w-0">
+            <div class="text-[13px] font-semibold text-[#1E293B]">Eliminate Logistics Backorder</div>
+            <p class="text-[12px] text-slate-600 leading-relaxed">
+              Auto-reallocate 6 OptiSensor units from Dallas WH-02 warehouse. Overnight direct transfer arrives within 26 hours.
+            </p>
+          </div>
+        </div>
+        <button class="shrink-0 px-3.5 py-2 bg-[#3368A0] hover:bg-[#285380] text-white rounded text-[12px] font-semibold transition-colors shadow-sm cursor-pointer" onclick="this.innerText = 'Executed ✓'; this.disabled = true;">Execute Inventory Reallocation</button>
+      </div>
+      <!-- Action Step 2 -->
+      <div class="p-4 rounded border border-[#E2E8F0] bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:border-[#3368A0]/50">
+        <div class="flex items-start gap-3 min-w-0">
+          <div class="w-7 h-7 rounded-full bg-[#66A3BF]/20 text-[#3368A0] font-bold text-[13px] flex items-center justify-center shrink-0 mt-0.5">2</div>
+          <div class="space-y-0.5 min-w-0">
+            <div class="text-[13px] font-semibold text-[#1E293B]">Defend Contract Gross Margin</div>
+            <p class="text-[12px] text-slate-600 leading-relaxed">
+              Counter-offer an extended 3-year enterprise warranty addendum in lieu of a 12% cash discount, protecting baseline margin at 62%.
+            </p>
+          </div>
+        </div>
+        <button class="shrink-0 px-3.5 py-2 bg-white hover:bg-slate-50 text-[#1E293B] border border-[#E2E8F0] rounded text-[12px] font-semibold transition-colors cursor-pointer">
+          Draft Counter-Offer
+        </button>
+      </div>
+      <!-- Action Step 3 -->
+      <div class="p-4 rounded border border-[#E2E8F0] bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:border-[#3368A0]/50">
+        <div class="flex items-start gap-3 min-w-0">
+          <div class="w-7 h-7 rounded-full bg-[#66A3BF]/20 text-[#3368A0] font-bold text-[13px] flex items-center justify-center shrink-0 mt-0.5">3</div>
+          <div class="space-y-0.5 min-w-0">
+            <div class="text-[13px] font-semibold text-[#1E293B]">Re-anchor Executive Alignment</div>
+            <p class="text-[12px] text-slate-600 leading-relaxed">
+              Trigger RevOps VP executive sponsor intervention briefing with Helios CIO Dr. Angela Vance to restate strategic enterprise ROI.
+            </p>
+          </div>
+        </div>
+        <button class="shrink-0 px-3.5 py-2 bg-white hover:bg-slate-50 text-[#1E293B] border border-[#E2E8F0] rounded text-[12px] font-semibold transition-colors cursor-pointer">
+          Schedule Sponsor Call
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 6. Main Operational Table: Prioritized At-Risk Deals Registry -->
+<div class="bg-white rounded border border-[#E2E8F0] p-6 space-y-4">
+<!-- Table Header & Controls -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
+<div>
+<h3 class="text-[16px] font-semibold text-[#1E293B]">At-Risk Deals &amp; Prescribed Interventions</h3>
+<p class="text-[12px] text-slate-500">Prioritized by revenue at risk, velocity deviation, and resolution urgency.</p>
+</div>
+<div class="flex items-center gap-2">
+<div class="relative">
+<input class="h-8 pl-8 pr-3 text-[12px] bg-slate-50 border border-[#E2E8F0] rounded text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#3368A0] w-64" placeholder="Filter by account, risk vector..." type="text">
+<span class="material-symbols-outlined absolute left-2 top-1.5 text-[16px] text-slate-400">search</span>
+</div>
+<button class="h-8 px-2.5 bg-white border border-[#E2E8F0] hover:bg-slate-50 rounded text-[12px] font-medium text-slate-700 flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">filter_list</span>
+<span class="">Filter</span>
+</button>
+</div>
+</div>
+<!-- Table Structure -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-[#E2E8F0] bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+<th class="py-3 px-3">Deal &amp; Account</th>
+<th class="py-3 px-3">Total Size</th>
+<th class="py-3 px-3">Health Score &amp; Velocity</th>
+<th class="py-3 px-3">Root Cause / Risk Vector</th>
+<th class="py-3 px-3">Cross-Module Trigger</th>
+<th class="py-3 px-3">Prescribed Rescue Plan</th>
+<th class="py-3 px-3 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="text-[13px] divide-y divide-[#E2E8F0]">
+<!-- Row 1: Helios Health System -->
+<tr class="hover:bg-slate-50/60 transition-colors">
+<td class="py-3.5 px-3">
+<div class="font-semibold text-[#1E293B]">Helios Health System</div>
+<div class="text-[11px] text-slate-500">Enterprise Diagnostics Cloud</div>
+</td>
+<td class="py-3.5 px-3 font-semibold text-[#1E293B] tabular-nums">₹7,47,60,000</td>
+<td class="py-3.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-700 tabular-nums">48 / 100</span>
+<span class="text-[11px] font-medium text-red-600">Critical</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">Warehouse Backorder</span>
+</td>
+<td class="py-3.5 px-3">
+<a class="text-[#3368A0] font-medium text-[12px] hover:underline flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[14px]">local_shipping</span>
+<span class="">WH-01 Shortage</span>
+</a>
+</td>
+<td class="py-3.5 px-3">
+<div class="font-medium text-red-700 text-[12px]">Action within 24h</div>
+<div class="text-[11px] text-slate-500">Auto-transfer 6 units from WH-02</div>
+</td>
+<td class="py-3.5 px-3 text-right">
+<button class="px-3 py-1 bg-[#3368A0] hover:bg-[#285380] text-white rounded text-[12px] font-medium transition-colors">
+                    Open Rescue
+                  </button>
+</td>
+</tr>
+<!-- Row 2: Apex Logistics International -->
+<tr class="hover:bg-slate-50/60 transition-colors">
+<td class="py-3.5 px-3">
+<div class="font-semibold text-[#1E293B]">Apex Logistics International</div>
+<div class="text-[11px] text-slate-500">Fleet Telematics Fleet-Pro</div>
+</td>
+<td class="py-3.5 px-3 font-semibold text-[#1E293B] tabular-nums">₹1,76,40,000</td>
+<td class="py-3.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 tabular-nums">58 / 100</span>
+<span class="text-[11px] font-medium text-amber-700">Warning</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">Aggressive Discount Demand</span>
+</td>
+<td class="py-3.5 px-3">
+<a class="text-[#3368A0] font-medium text-[12px] hover:underline flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[14px]">receipt_long</span>
+<span class="">Quote Q-9475</span>
+</a>
+</td>
+<td class="py-3.5 px-3">
+<div class="font-medium text-amber-800 text-[12px]">Action within 48h</div>
+<div class="text-[11px] text-slate-500">Bundle SLA Tier-3 instead of discount</div>
+</td>
+<td class="py-3.5 px-3 text-right">
+<button class="px-3 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-[#E2E8F0] rounded text-[12px] font-medium transition-colors">
+                    Apply Remedy
+                  </button>
+</td>
+</tr>
+<!-- Row 3: OmniCloud Networks -->
+<tr class="hover:bg-slate-50/60 transition-colors">
+<td class="py-3.5 px-3">
+<div class="font-semibold text-[#1E293B]">OmniCloud Networks</div>
+<div class="text-[11px] text-slate-500">Global Edge Infrastructure</div>
+</td>
+<td class="py-3.5 px-3 font-semibold text-[#1E293B] tabular-nums">₹12,18,00,000</td>
+<td class="py-3.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-700 tabular-nums">44 / 100</span>
+<span class="text-[11px] font-medium text-red-600">Critical</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">Contract Redline Impasse</span>
+</td>
+<td class="py-3.5 px-3">
+<a class="text-[#3368A0] font-medium text-[12px] hover:underline flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[14px]">description</span>
+<span class="">MSA Sec 18.2</span>
+</a>
+</td>
+<td class="py-3.5 px-3">
+<div class="font-medium text-red-700 text-[12px]">Immediate</div>
+<div class="text-[11px] text-slate-500">Swap standard SOC-2 mutual indemnity clause</div>
+</td>
+<td class="py-3.5 px-3 text-right">
+<button class="px-3 py-1 bg-[#3368A0] hover:bg-[#285380] text-white rounded text-[12px] font-medium transition-colors">
+                    Open Rescue
+                  </button>
+</td>
+</tr>
+<!-- Row 4: Novus Energy Group -->
+<tr class="hover:bg-slate-50/60 transition-colors">
+<td class="py-3.5 px-3">
+<div class="font-semibold text-[#1E293B]">Novus Energy Group</div>
+<div class="text-[11px] text-slate-500">Grid Automation Suite</div>
+</td>
+<td class="py-3.5 px-3 font-semibold text-[#1E293B] tabular-nums">₹3,15,00,000</td>
+<td class="py-3.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 tabular-nums">62 / 100</span>
+<span class="text-[11px] font-medium text-amber-700">Warning</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">Champion Departure</span>
+</td>
+<td class="py-3.5 px-3">
+<a class="text-[#3368A0] font-medium text-[12px] hover:underline flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[14px]">contacts</span>
+<span class="">Contact Churn</span>
+</a>
+</td>
+<td class="py-3.5 px-3">
+<div class="font-medium text-amber-800 text-[12px]">Action within 72h</div>
+<div class="text-[11px] text-slate-500">Multi-thread with VP Eng &amp; CFO</div>
+</td>
+<td class="py-3.5 px-3 text-right">
+<button class="px-3 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-[#E2E8F0] rounded text-[12px] font-medium transition-colors">
+                    Apply Remedy
+                  </button>
+</td>
+</tr>
+<!-- Row 5: CyberTrust Federal -->
+<tr class="hover:bg-slate-50/60 transition-colors">
+<td class="py-3.5 px-3">
+<div class="font-semibold text-[#1E293B]">CyberTrust Federal</div>
+<div class="text-[11px] text-slate-500">GovCloud Dedicated Cluster</div>
+</td>
+<td class="py-3.5 px-3 font-semibold text-[#1E293B] tabular-nums">₹5,20,000</td>
+<td class="py-3.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 tabular-nums">68 / 100</span>
+<span class="text-[11px] font-medium text-amber-700">Warning</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">Billing Term Dispute</span>
+</td>
+<td class="py-3.5 px-3">
+<a class="text-[#3368A0] font-medium text-[12px] hover:underline flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[14px]">receipt</span>
+<span class="">Billing INV-4102</span>
+</a>
+</td>
+<td class="py-3.5 px-3">
+<div class="font-medium text-slate-700 text-[12px]">Action within 5d</div>
+<div class="text-[11px] text-slate-500">Switch to Net-45 milestone disbursement</div>
+</td>
+<td class="py-3.5 px-3 text-right">
+<button class="px-3 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-[#E2E8F0] rounded text-[12px] font-medium transition-colors">
+                    Apply Remedy
+                  </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination & Metadata -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-[12px] text-slate-500"><div class="text-[12.5px] text-slate-500">Showing <span class="font-medium text-slate-800">5</span> prioritized cases out of <span class="font-medium text-slate-800">22</span> active revenue risks across 4 geographic territories</div>
+<div class="flex items-center gap-2">
+  <button class="px-3 py-1.5 bg-white border border-[#E2E8F0] rounded hover:bg-slate-50 disabled:opacity-50 text-slate-700 font-medium text-[12px] transition-colors cursor-pointer" disabled="">Previous</button>
+  <span class="px-2 font-semibold text-slate-700 text-[12px]">Page 1 of 5</span>
+  <button class="px-3 py-1.5 bg-white border border-[#E2E8F0] rounded hover:bg-slate-50 text-slate-700 font-medium text-[12px] transition-colors cursor-pointer">Next</button>
+</div></div>
+</div>
+</main>
+</div>
+
+
+</body></html>
