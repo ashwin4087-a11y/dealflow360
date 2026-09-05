@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import { createAuthRouter } from "./routes/authRoutes.js";
+import { createProductRouter } from "./routes/productRoutes.js";
+import { createCustomerRouter } from "./routes/customerRoutes.js";
+import { createQuotationRouter } from "./routes/quotationRoutes.js";
 
 export const createApp = (prismaClient) => {
   const app = express();
@@ -21,6 +24,9 @@ export const createApp = (prismaClient) => {
   });
 
   app.use("/api/auth", createAuthRouter(prismaClient));
+  app.use("/api/products", createProductRouter(prismaClient));
+  app.use("/api/customers", createCustomerRouter(prismaClient));
+  app.use("/api/quotations", createQuotationRouter(prismaClient));
 
   app.use((error, _req, res, _next) => {
     const statusCode = error.statusCode || 500;

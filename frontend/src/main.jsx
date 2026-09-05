@@ -1,12 +1,361 @@
-import React, { useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, BarChart3, Bell, Boxes, Check,
   ChevronDown, ChevronRight, CircleDollarSign, ClipboardCheck, FileText, Filter, Gauge,
   LayoutDashboard, Menu, MoreVertical, PackageCheck, PanelLeft, Search,
-  ShieldCheck, Sparkles, Target, Truck, Users, X, Zap
+  ShieldCheck, Sparkles, Target, Truck, Users, X, Zap,
+  Plus, Minus, Trash2, ShoppingCart, Save, LogIn, LogOut, Loader, Package,
+  User, DollarSign, Percent, Hash, CheckCircle, XCircle, AlertCircle, Eye
 } from 'lucide-react';
 import './styles.css';
+
+/* ─── API Layer ─── */
+const API_BASE = 'http://localhost:3000';
+
+const apiFetch = async (path, options = {}) => {
+  const token = localStorage.getItem('df360_token');
+  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const body = await res.json().catch(() => ({ success: false, error: 'Invalid response' }));
+  if (!res.ok) {
+    const err = new Error(body.error || `Request failed (${res.status})`);
+    err.status = res.status;
+    err.body = body;
+    throw err;
+  }
+  return body;
+};
+
+/* ─── Auth Context ─── */
+const AuthContext = createContext(null);
+
+function AuthProvider({ children }) {
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('df360_user')); } catch { return null; }
+  });
+  const [token, setToken] = useState(() => localStorage.getItem('df360_token'));
+
+  const login = useCallback(async (email, password) => {
+    const res = await apiFetch('/api/auth/login', {
+      method: 'POST', body: JSON.stringify({ email, password }),
+    });
+    localStorage.setItem('df360_token', res.token);
+    localStorage.setItem('df360_user', JSON.stringify(res.user));
+    setToken(res.token);
+    setUser(res.user);
+    return res;
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('df360_token');
+    localStorage.removeItem('df360_user');
+    setToken(null);
+    setUser(null);
+    window.location.hash = '#/login';
+  }, []);
+
+  const value = useMemo(() => ({ user, token, login, logout, isAuthenticated: !!token }), [user, token, login, logout]);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+const useAuth = () => useContext(AuthContext);
+
+/* ─── Login Page ─── */
+function LoginPage() {
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!email.trim() || !password) { setError('Email and password are required'); return; }
+    setLoading(true);
+    try {
+      await login(email.trim(), password);
+      window.location.hash = '#/sales';
+    } catch (err) {
+      setError(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return <div className="login-page">
+    <div className="login-card">
+      <div className="login-brand"><div className="brand-mark"><Activity size={21} /></div><div><strong>DealFlow360</strong><small>Revenue Ops Core</small></div></div>
+      <h1>Sign in</h1>
+      <p>Enter your credentials to access the platform</p>
+      {error && <div className="login-error"><AlertCircle size={14} />{error}</div>}
+      <form onSubmit={handleSubmit}>
+        <label className="form-field"><span>Email</span><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" autoComplete="email" /></label>
+        <label className="form-field"><span>Password</span><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" /></label>
+        <button type="submit" className="primary-button full login-submit" disabled={loading}>{loading ? <><Loader size={14} className="spin" /> Signing in...</> : <><LogIn size={14} /> Sign in</>}</button>
+      </form>
+    </div>
+  </div>;
+}
+
+/* ─── Quotation Builder Page ─── */
+let lineIdCounter = 0;
+const nextLineId = () => `line-${++lineIdCounter}-${Date.now()}`;
+
+function QuotationBuilderPage() {
+  const { user } = useAuth();
+
+  // Get customerId from URL query params
+  const customerId = useMemo(() => {
+    const hash = window.location.hash;
+    const queryStart = hash.indexOf('?');
+    if (queryStart === -1) return null;
+    const params = new URLSearchParams(hash.slice(queryStart));
+    return params.get('customerId');
+  }, []);
+
+  // State
+  const [customer, setCustomer] = useState(null);
+  const [customerLoading, setCustomerLoading] = useState(false);
+  const [customerError, setCustomerError] = useState('');
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [productsError, setProductsError] = useState('');
+  const [lines, setLines] = useState([]);
+  const [taxPercent, setTaxPercent] = useState('18');
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [createdQuotation, setCreatedQuotation] = useState(null);
+  const [validationErrors, setValidationErrors] = useState([]);
+
+  // Fetch customer
+  useEffect(() => {
+    if (!customerId) { setCustomerError('No customer selected. Please go back and select a customer.'); return; }
+    setCustomerLoading(true);
+    setCustomerError('');
+    apiFetch(`/api/customers/${customerId}`)
+      .then(res => setCustomer(res.data))
+      .catch(err => setCustomerError(err.message || 'Failed to load customer'))
+      .finally(() => setCustomerLoading(false));
+  }, [customerId]);
+
+  // Fetch products
+  useEffect(() => {
+    setProductsLoading(true);
+    setProductsError('');
+    apiFetch('/api/products')
+      .then(res => {
+        setProducts(res.data || []);
+        const activeProducts = (res.data || []).filter(p => p.active);
+        if (activeProducts.length > 0) setSelectedProductId(activeProducts[0].id);
+      })
+      .catch(err => setProductsError(err.message || 'Failed to load products'))
+      .finally(() => setProductsLoading(false));
+  }, []);
+
+  const activeProducts = useMemo(() => products.filter(p => p.active), [products]);
+
+  // Line management
+  const addLine = () => {
+    if (!selectedProductId) return;
+    const product = products.find(p => p.id === selectedProductId);
+    if (!product) return;
+    setLines(prev => [...prev, {
+      lineId: nextLineId(),
+      productId: product.id,
+      productName: product.name,
+      productSku: product.sku,
+      productCategory: product.category,
+      quantity: 1,
+      discountPercent: 0,
+    }]);
+  };
+
+  const updateLine = (lineId, field, value) => {
+    setLines(prev => prev.map(l => l.lineId === lineId ? { ...l, [field]: value } : l));
+  };
+
+  const removeLine = (lineId) => {
+    setLines(prev => prev.filter(l => l.lineId !== lineId));
+  };
+
+  // Validation
+  const validate = () => {
+    const errors = [];
+    if (!customerId) errors.push('Customer is required');
+    if (lines.length === 0) errors.push('At least one quotation line is required');
+    lines.forEach((line, i) => {
+      const qty = Number(line.quantity);
+      if (!Number.isFinite(qty) || qty <= 0 || !Number.isInteger(qty)) {
+        errors.push(`Line ${i + 1}: Quantity must be a positive integer`);
+      }
+      const disc = Number(line.discountPercent);
+      if (!Number.isFinite(disc) || disc < 0 || disc > 100) {
+        errors.push(`Line ${i + 1}: Discount must be between 0 and 100`);
+      }
+    });
+    const tax = Number(taxPercent);
+    if (!Number.isFinite(tax) || tax < 0 || tax > 100) {
+      errors.push('Tax percentage must be between 0 and 100');
+    }
+    return errors;
+  };
+
+  // Create quotation
+  const handleCreate = async () => {
+    setCreateError('');
+    setValidationErrors([]);
+    const errors = validate();
+    if (errors.length > 0) { setValidationErrors(errors); return; }
+
+    setCreating(true);
+    try {
+      const requestBody = {
+        customerId,
+        taxPercent: Number(taxPercent) || 0,
+        items: lines.map(l => ({
+          productId: l.productId,
+          quantity: Number(l.quantity),
+          discountPercent: Number(l.discountPercent) || 0,
+        })),
+      };
+      const res = await apiFetch('/api/quotations', {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+      });
+      setCreatedQuotation(res.data);
+    } catch (err) {
+      setCreateError(err.body?.error || err.message || 'Failed to create quotation');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  // If quotation was created, show the result
+  if (createdQuotation) {
+    const q = createdQuotation;
+    const compliance = q.discountCompliance;
+    return <>
+      <div className="detail-backbar"><button className="back-button" onClick={() => { setCreatedQuotation(null); setLines([]); }}><ArrowLeft size={15} /> Create another</button><span>Quotation Created</span></div>
+      <PageHeader eyebrow="Sales / Quotation Created" title="Quotation Created Successfully" description={`Quotation ${q.quotationNumber} has been saved as a draft.`} />
+      <div className="qb-success-grid">
+        <Section title="Quotation Summary" icon={FileText}>
+          <div className="qb-summary-grid">
+            <div className="qb-summary-item"><small>Quotation Number</small><strong>{q.quotationNumber}</strong></div>
+            <div className="qb-summary-item"><small>Status</small><span className="badge">{q.status}</span></div>
+            <div className="qb-summary-item"><small>Customer</small><strong>{q.customer?.name || q.customerId}</strong></div>
+            <div className="qb-summary-item"><small>Company</small><strong>{q.customer?.company || '—'}</strong></div>
+          </div>
+        </Section>
+        <Section title="Financial Summary" icon={CircleDollarSign}>
+          <div className="qb-summary-grid">
+            <div className="qb-summary-item"><small>Subtotal</small><strong>₹{Number(q.subtotal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></div>
+            <div className="qb-summary-item"><small>Discount</small><strong>{Number(q.discountPercent).toFixed(2)}% (₹{Number(q.discountAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })})</strong></div>
+            <div className="qb-summary-item"><small>Tax ({Number(q.taxPercent).toFixed(2)}%)</small><strong>₹{Number(q.taxAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></div>
+            <div className="qb-summary-item qb-total"><small>Total</small><strong>₹{Number(q.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></div>
+          </div>
+        </Section>
+      </div>
+      {compliance && <Section title="Discount Compliance" icon={ShieldCheck} action={<span className={`badge ${compliance.riskLevel === 'HIGH' ? 'red' : compliance.riskLevel === 'MEDIUM' ? 'amber' : ''}`}>{compliance.riskLevel} Risk</span>}>
+        <div className="qb-compliance">
+          <div className="qb-summary-grid">
+            <div className="qb-summary-item"><small>Blended Discount</small><strong>{compliance.blendedDiscountPercent}%</strong></div>
+            <div className="qb-summary-item"><small>Risk Level</small><strong>{compliance.riskLevel}</strong></div>
+            <div className="qb-summary-item"><small>Requires Approval</small><strong>{compliance.requiresApproval ? 'Yes' : 'No'}</strong></div>
+          </div>
+          {compliance.lineViolations?.some(v => !v.compliant) && <div className="qb-violations">
+            <strong><AlertTriangle size={13} /> Discount Violations</strong>
+            {compliance.lineViolations.filter(v => !v.compliant).map((v, i) => <div key={i} className="qb-violation-item"><XCircle size={12} /><span>{v.violation}</span></div>)}
+          </div>}
+        </div>
+      </Section>}
+      <Section title="Quotation Lines" icon={Package}>
+        <div className="table-wrap"><table>
+          <thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Qty</th><th>Unit Price</th><th>Discount %</th><th>Discount Amt</th><th>Line Total</th></tr></thead>
+          <tbody>{(q.items || []).map((item, i) => <tr key={item.id || i}>
+            <td><strong>{item.product?.name || item.productId}</strong></td>
+            <td>{item.product?.sku || '—'}</td>
+            <td><span className="soft-tag">{item.product?.category || '—'}</span></td>
+            <td>{Number(item.quantity)}</td>
+            <td>₹{Number(item.unitPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            <td>{Number(item.discountPercent).toFixed(2)}%</td>
+            <td>₹{Number(item.discountAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            <td><strong>₹{Number(item.lineTotal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
+          </tr>)}</tbody>
+        </table></div>
+      </Section>
+    </>;
+  }
+
+  // Build form
+  return <>
+    <PageHeader eyebrow="Sales / New Quotation" title="Quotation Builder" description="Select products, set quantities and discounts, then create a draft quotation. All pricing is calculated by the server." />
+
+    {/* Customer Card */}
+    <Section title="Selected Customer" icon={Users}>
+      {customerLoading && <div className="qb-loading"><Loader size={18} className="spin" /> Loading customer...</div>}
+      {customerError && <div className="qb-error"><AlertCircle size={16} />{customerError}</div>}
+      {customer && <div className="qb-customer-card">
+        <div className="company-mark">{(customer.name || '').slice(0, 2).toUpperCase()}</div>
+        <div className="qb-customer-info">
+          <strong>{customer.name}</strong>
+          {customer.company && <small>{customer.company}</small>}
+          {customer.email && <small>{customer.email}</small>}
+          <span className="soft-tag">{customer.customerTier || 'STANDARD'}</span>
+        </div>
+      </div>}
+    </Section>
+
+    {/* Product Selector */}
+    <Section title="Add Product" icon={Package}>
+      {productsLoading && <div className="qb-loading"><Loader size={18} className="spin" /> Loading products...</div>}
+      {productsError && <div className="qb-error"><AlertCircle size={16} />{productsError}</div>}
+      {!productsLoading && !productsError && activeProducts.length === 0 && <div className="qb-empty"><Package size={20} /><span>No active products available</span></div>}
+      {!productsLoading && activeProducts.length > 0 && <div className="qb-product-selector">
+        <select value={selectedProductId} onChange={e => setSelectedProductId(e.target.value)} className="qb-select">
+          {activeProducts.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku}) — {p.category}</option>)}
+        </select>
+        <button className="primary-button" onClick={addLine}><Plus size={14} /> Add to Quote</button>
+      </div>}
+    </Section>
+
+    {/* Quotation Lines */}
+    <Section title={`Quotation Lines (${lines.length})`} icon={FileText}>
+      {lines.length === 0 && <div className="qb-empty"><ShoppingCart size={20} /><span>No items added yet. Select a product above to begin.</span></div>}
+      {lines.length > 0 && <div className="table-wrap"><table>
+        <thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Quantity</th><th>Discount %</th><th>Actions</th></tr></thead>
+        <tbody>{lines.map((line, i) => <tr key={line.lineId}>
+          <td><strong>{line.productName}</strong></td>
+          <td>{line.productSku}</td>
+          <td><span className="soft-tag">{line.productCategory}</span></td>
+          <td><div className="qb-qty-control">
+            <button className="qb-qty-btn" onClick={() => updateLine(line.lineId, 'quantity', Math.max(1, Number(line.quantity) - 1))} aria-label="Decrease quantity"><Minus size={12} /></button>
+            <input type="number" className="qb-qty-input" value={line.quantity} min="1" step="1" onChange={e => updateLine(line.lineId, 'quantity', e.target.value)} />
+            <button className="qb-qty-btn" onClick={() => updateLine(line.lineId, 'quantity', Number(line.quantity) + 1)} aria-label="Increase quantity"><Plus size={12} /></button>
+          </div></td>
+          <td><div className="qb-discount-input"><input type="number" value={line.discountPercent} min="0" max="100" step="0.5" onChange={e => updateLine(line.lineId, 'discountPercent', e.target.value)} /><span>%</span></div></td>
+          <td><button className="qb-remove-btn" onClick={() => removeLine(line.lineId)} aria-label="Remove line"><Trash2 size={14} /></button></td>
+        </tr>)}</tbody>
+      </table></div>}
+    </Section>
+
+    {/* Tax & Create */}
+    {lines.length > 0 && <Section title="Finalize Quotation" icon={Save}>
+      <div className="qb-finalize">
+        <label className="form-field qb-tax-field"><span>Tax Percentage</span><div className="qb-discount-input"><input type="number" value={taxPercent} min="0" max="100" step="0.5" onChange={e => setTaxPercent(e.target.value)} /><span>%</span></div></label>
+        <p className="qb-note"><AlertCircle size={12} /> All pricing, discounts, taxes, and totals are calculated by the server. The values shown after creation reflect the authoritative backend calculations.</p>
+
+        {validationErrors.length > 0 && <div className="qb-validation-errors">{validationErrors.map((err, i) => <div key={i} className="qb-error-item"><XCircle size={12} />{err}</div>)}</div>}
+        {createError && <div className="qb-error"><AlertCircle size={16} />{createError}</div>}
+
+        <button className="primary-button qb-create-btn" onClick={handleCreate} disabled={creating}>{creating ? <><Loader size={14} className="spin" /> Creating quotation...</> : <><Save size={14} /> Create Draft Quotation</>}</button>
+      </div>
+    </Section>}
+  </>;
+}
 
 const navGroups = [
   { label: 'Sales', items: [
@@ -35,10 +384,11 @@ const deals = [
 ];
 
 function routeFromHash() {
-  return window.location.hash.replace('#/', '') || 'health';
+  return window.location.hash.replace(/^#\/?/, '') || 'health';
 }
 
 function App() {
+  const { isAuthenticated, user, logout } = useAuth();
   const [route, setRoute] = useState(routeFromHash);
   const [mobileNav, setMobileNav] = useState(false);
   const [search, setSearch] = useState('');
@@ -50,22 +400,33 @@ function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
+  if (!isAuthenticated && route !== 'login') {
+    window.location.hash = '#/login';
+    return null;
+  }
+
+  if (route === 'login') {
+    return <LoginPage />;
+  }
+
   const go = (nextRoute) => { window.location.hash = `/${nextRoute}`; setMobileNav(false); };
   const active = navGroups.flatMap((group) => group.items).find((item) => item[1] === route);
-  const page = route === 'rescue' ? 'rescue' : route === 'customer' ? 'customer' : route === 'negotiation' ? 'negotiation' : route;
+  const page = route === 'rescue' ? 'rescue' : route === 'customer' ? 'customer' : route === 'negotiation' ? 'negotiation' : route.startsWith('sales/quotations/new') ? 'quotation-builder' : route;
+  
+  const userInitials = user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'U';
 
   return <div className="app-shell">
-    <Sidebar active={route} open={mobileNav} onNavigate={go} onClose={() => setMobileNav(false)} />
+    <Sidebar active={route} open={mobileNav} onNavigate={go} onClose={() => setMobileNav(false)} user={user} onLogout={logout} />
     <div className="main-shell">
       <header className="topbar">
         <button className="icon-button mobile-menu" onClick={() => setMobileNav(true)} aria-label="Open navigation"><Menu size={18} /></button>
-        <div className="crumbs"><span>Revenue Intelligence</span><ChevronRight size={14} /><strong>{active?.[0] || 'Deal Health Radar'}</strong></div>
+        <div className="crumbs"><span>Revenue Intelligence</span><ChevronRight size={14} /><strong>{active?.[0] || (page === 'quotation-builder' ? 'Quotation Builder' : 'Deal Health Radar')}</strong></div>
         <div className="top-actions">
           <label className="search-box"><Search size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search accounts, deals..." /><kbd>⌘K</kbd></label>
           <span className="context-chip">INR (₹) <i /> Global Enterprise</span>
           <button className="icon-button notification" aria-label="Notifications" onClick={() => setNotice('No new notifications')}><Bell size={17} /><b /></button>
           <button className="primary-button" onClick={() => { go('rescue'); setNotice('Rescue workspace opened'); }}><Zap size={15} /> Trigger Rescue</button>
-          <div className="avatar">SJ</div>
+          <div className="avatar">{userInitials}</div>
         </div>
       </header>
       <main className="content">
@@ -75,14 +436,17 @@ function App() {
         {page === 'rescue' && <RescuePage onNavigate={go} />}
         {page === 'customer' && <CustomerPage />}
         {page === 'negotiation' && <NegotiationPage />}
-        {!['health', 'deal-detail', 'rescue', 'customer', 'negotiation'].includes(page) && <OperationalPage title={active?.[0] || 'Sales Dashboard'} />}
+        {page === 'quotation-builder' && <QuotationBuilderPage />}
+        {!['health', 'deal-detail', 'rescue', 'customer', 'negotiation', 'quotation-builder'].includes(page) && <OperationalPage title={active?.[0] || 'Sales Dashboard'} />}
       </main>
     </div>
   </div>;
 }
 
-function Sidebar({ active, open, onNavigate, onClose }) {
+function Sidebar({ active, open, onNavigate, onClose, user, onLogout }) {
   const [expandedGroup, setExpandedGroup] = useState(null);
+
+  const userInitials = user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'U';
 
   return <aside className={`sidebar ${open ? 'is-open' : ''}`}>
     <div className="brand"><div className="brand-mark"><Activity size={21} /></div><div><strong>DealFlow360</strong><small>Revenue Ops Core</small></div><button className="icon-button close-nav" onClick={onClose} aria-label="Close navigation"><X size={17} /></button></div>
@@ -96,7 +460,11 @@ function Sidebar({ active, open, onNavigate, onClose }) {
         {isExpanded && <div className="nav-items">{group.items.map(([label, key, Icon]) => <button key={key} className={`nav-item ${active === key ? 'active' : ''}`} onClick={() => onNavigate(key)}><Icon size={16} /><span>{label}</span></button>)}</div>}
       </section>;
     })}</div>
-    <div className="profile"><div className="avatar">SJ</div><div><strong>Sarah Jenkins</strong><small>RevOps Director</small></div><MoreVertical size={16} /></div>
+    <div className="profile">
+      <div className="avatar">{userInitials}</div>
+      <div><strong>{user?.name || 'User'}</strong><small>{user?.role || 'Role'}</small></div>
+      <button className="icon-button" onClick={onLogout} aria-label="Log out"><LogOut size={14} /></button>
+    </div>
   </aside>;
 }
 
@@ -136,4 +504,4 @@ function CustomerPage() { return <><PageHeader eyebrow="Revenue Intelligence / A
 function NegotiationPage() { return <><PageHeader eyebrow="Revenue Intelligence / Commercial strategy" title="Negotiation Intelligence" description="Give sellers the context, guardrails, and recommended language to protect value in every commercial conversation." action="New negotiation brief" /><div className="negotiation-layout"><Section title="Helios Health System" icon={Target}><div className="negotiation-score"><div><small>Negotiation posture</small><strong>Defend value</strong><p>Customer urgency is high, but the active fulfillment issue gives procurement leverage.</p></div><div className="score-ring">62<small>/100</small></div></div><div className="chips"><span className="soft-tag">Budget approved</span><span className="soft-tag">Timeline sensitive</span><span className="soft-tag">Executive sponsor active</span></div></Section><Section title="Recommended guardrails" icon={ShieldCheck}><div className="guardrails"><div><span>Floor margin</span><strong>58.4%</strong></div><div><span>Approved concession</span><strong>₹5,00,000</strong></div><div><span>Preferred term</span><strong>36 months</strong></div></div><div className="quote-box">“We can protect the deployment timeline through a warehouse reallocation. In return, we can structure the commercial concession against a three-year commitment.”</div><button className="primary-button full">Copy negotiation brief</button></Section></div><Section title="Conversation signals" icon={Activity}><div className="table-wrap"><table><thead><tr><th>Signal</th><th>Observed evidence</th><th>Recommended response</th><th>Confidence</th></tr></thead><tbody><tr><td><strong>Price anchoring</strong></td><td>Procurement opened 18% below list.</td><td>Reframe on deployment cost and risk.</td><td><span className="status success">High</span></td></tr><tr><td><strong>Timing leverage</strong></td><td>Pilot milestone is within 14 days.</td><td>Offer certainty, not a blanket discount.</td><td><span className="status success">High</span></td></tr><tr><td><strong>Decision friction</strong></td><td>Legal review has not started.</td><td>Bring counsel into the next working session.</td><td><span className="status warning">Medium</span></td></tr></tbody></table></div></Section></>; }
 function OperationalPage({ title }) { return <><PageHeader eyebrow="Operations / Workspace" title={title} description="Operational workspace connected to the DealFlow360 revenue operating system." action="Create new" /><Section title="Workspace overview" icon={PanelLeft}><div className="empty-state"><Sparkles size={24} /><h2>Ready for connected data</h2><p>This view is prepared for REST API responses and currently uses the shared DealFlow360 mock workspace.</p><button className="primary-button">Create first record</button></div></Section></>; }
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(<AuthProvider><App /></AuthProvider>);
