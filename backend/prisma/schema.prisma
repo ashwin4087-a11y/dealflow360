@@ -15,6 +15,8 @@ model User {
   passwordHash       String?
   role               UserRole          @default(SALESPERSON)
   createdAt          DateTime          @default(now())
+  customerId         String?           @unique
+  customer           Customer?         @relation(fields: [customerId], references: [id], onDelete: Restrict)
   quotations         Quotation[]
   requestedApprovals ApprovalRequest[] @relation("RequestedApprovals")
   assignedApprovals  ApprovalRequest[] @relation("AssignedApprovals")
@@ -40,6 +42,7 @@ model Customer {
   shippingAddress String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  user            User?
   quotations      Quotation[]
 }
 
@@ -136,11 +139,28 @@ model DiscountRule {
   @@index([productCategory])
 }
 
+model ApprovalRule {
+  id                        String   @id @default(cuid())
+  name                      String
+  minBlendedDiscountPercent Decimal  @db.Decimal(5, 2)
+  requiresLineViolation     Boolean  @default(false)
+  requiresManager           Boolean  @default(true)
+  requiresFinance           Boolean  @default(false)
+  active                    Boolean  @default(true)
+  priority                  Int      @default(0)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@index([active, priority])
+  @@index([minBlendedDiscountPercent])
+}
+
 model ApprovalRequest {
   id            String         @id @default(cuid())
   quotationId   String
   requestedById String
   approverId    String?
+  approvalRole  ApprovalRole
   reason        String
   status        ApprovalStatus @default(PENDING)
   createdAt     DateTime       @default(now())
@@ -149,6 +169,7 @@ model ApprovalRequest {
   requestedBy   User           @relation("RequestedApprovals", fields: [requestedById], references: [id], onDelete: Restrict)
   approver      User?          @relation("AssignedApprovals", fields: [approverId], references: [id], onDelete: Restrict)
 
+  @@unique([quotationId, approvalRole])
   @@index([quotationId])
   @@index([requestedById])
   @@index([approverId])
@@ -185,4 +206,9 @@ enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum ApprovalRole {
+  MANAGER
+  FINANCE
 }

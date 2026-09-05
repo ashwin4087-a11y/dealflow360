@@ -3,6 +3,7 @@ import {
   getQuotation,
   listQuotations,
   updateQuotation,
+  sendQuotation,
 } from "../services/quotationService.js";
 
 export const createQuotationController = (prismaClient) => ({
@@ -40,6 +41,16 @@ export const createQuotationController = (prismaClient) => ({
       res.json({
         success: true,
         data: await updateQuotation(prismaClient, req.params.id, req.body),
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+  send: async (req, res, next) => {
+    try {
+      res.json({
+        success: true,
+        data: await sendQuotation(prismaClient, req.params.id),
       });
     } catch (error) {
       next(error);

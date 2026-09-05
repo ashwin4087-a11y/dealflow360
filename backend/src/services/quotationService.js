@@ -1,8 +1,11 @@
 import { getProductPrice } from "./pricingService.js";
 import {
+  calculateDiscountAmount,
   validateDiscountPercent,
   validateLineDiscount,
 } from "./discountService.js";
+import { calculateBlendedDiscountRisk } from "./riskService.js";
+import { createApprovalRequests, evaluateApproval } from "./approvalService.js";
 
 const QUOTATION_FIELDS = {
   id: true,
@@ -102,14 +105,6 @@ const multiplyMoney = (quantity, unitPrice) => {
   const numerator = quantityScaled * priceCents;
   const denominator = 10n ** BigInt(quantityPlaces);
   return (numerator + denominator / 2n) / denominator;
-};
-
-const percentOfMoney = (amountCents, percent) => {
-  const percentValue = String(percent);
-  const [whole, fraction = ""] = percentValue.split(".");
-  const percentScaled =
-    BigInt(whole) * 100n + BigInt((fraction + "00").slice(0, 2));
-  return (amountCents * percentScaled + 5000n) / 10000n;
 };
 
 const normalizeInput = (input, { partial = false } = {}) => {
@@ -234,6 +229,7 @@ const serializeQuotation = (quotation) => {
           }
         : {}),
     }));
+  if (quotation.risk) serialized.risk = quotation.risk;
   return serialized;
 };
 
@@ -266,17 +262,21 @@ const calculateQuote = async (prismaClient, input) => {
       discountPercent,
     });
     const grossLineAmount = multiplyMoney(item.quantity, unitPrice);
-    const discountAmount = percentOfMoney(grossLineAmount, discountPercent);
-    const lineTotal = grossLineAmount - discountAmount;
+    const discountAmount = calculateDiscountAmount(
+      centsToString(grossLineAmount),
+      discountPercent,
+    );
+    const lineDiscountCents = toCents(discountAmount);
+    const lineTotal = grossLineAmount - lineDiscountCents;
     grossSubtotalCents += grossLineAmount;
-    discountAmountCents += discountAmount;
+    discountAmountCents += lineDiscountCents;
     subtotalCents += lineTotal;
     items.push({
       productId: item.productId,
       quantity: parseDecimal(item.quantity, "quantity", { positive: true }),
       unitPrice: decimalString(unitPrice),
       discountPercent,
-      discountAmount: centsToString(discountAmount),
+      discountAmount,
       lineTotal: centsToString(lineTotal),
       maxAllowedDiscountPercent: governance.maxAllowedDiscountPercent,
       compliant: governance.compliant,
@@ -303,15 +303,25 @@ const calculateQuote = async (prismaClient, input) => {
 const quotationNumber = () =>
   `Q-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
+const withRisk = (quotation, items) => ({
+  ...quotation,
+  items,
+  risk: calculateBlendedDiscountRisk(items),
+});
+
 export const createQuotation = async (prismaClient, salespersonId, input) => {
   const calculated = await calculateQuote(prismaClient, input);
+  const calculatedRisk = calculateBlendedDiscountRisk(calculated.items);
+  const approvalDecision = await evaluateApproval(prismaClient, calculatedRisk);
   return prismaClient.$transaction(async (transaction) => {
     const quotation = await transaction.quotation.create({
       data: {
         quotationNumber: quotationNumber(),
         customerId: calculated.normalized.customerId,
         salespersonId,
-        status: "DRAFT",
+        status: approvalDecision.approvalRequired
+          ? "PENDING_APPROVAL"
+          : "DRAFT",
         subtotal: calculated.subtotal,
         discountPercent: "0",
         discountAmount: calculated.discountAmount,
@@ -328,13 +338,22 @@ export const createQuotation = async (prismaClient, salespersonId, input) => {
       },
       select: QUOTATION_FIELDS,
     });
-    return serializeQuotation({
-      ...quotation,
-      items: quotation.items.map((item, index) => ({
-        ...item,
-        ...calculated.items[index],
-      })),
-    });
+    await createApprovalRequests(
+      transaction,
+      quotation.id,
+      salespersonId,
+      approvalDecision,
+      calculatedRisk,
+    );
+    return serializeQuotation(
+      withRisk(
+        quotation,
+        quotation.items.map((item, index) => ({
+          ...item,
+          ...calculated.items[index],
+        })),
+      ),
+    );
   });
 };
 
@@ -360,12 +379,14 @@ export const getQuotation = async (prismaClient, id) => {
 export const updateQuotation = async (prismaClient, id, input) => {
   const existing = await prismaClient.quotation.findUnique({
     where: { id },
-    select: { id: true, status: true },
+    select: { id: true, status: true, salespersonId: true },
   });
   if (!existing) throw serviceError("Quotation not found", 404);
   if (existing.status !== "DRAFT")
     throw serviceError("Only DRAFT quotations can be updated", 409);
   const calculated = await calculateQuote(prismaClient, input);
+  const calculatedRisk = calculateBlendedDiscountRisk(calculated.items);
+  const approvalDecision = await evaluateApproval(prismaClient, calculatedRisk);
 
   return prismaClient.$transaction(async (transaction) => {
     await transaction.quotationItem.deleteMany({ where: { quotationId: id } });
@@ -373,6 +394,9 @@ export const updateQuotation = async (prismaClient, id, input) => {
       where: { id },
       data: {
         customerId: calculated.normalized.customerId,
+        status: approvalDecision.approvalRequired
+          ? "PENDING_APPROVAL"
+          : "DRAFT",
         subtotal: calculated.subtotal,
         discountPercent: "0",
         discountAmount: calculated.discountAmount,
@@ -388,17 +412,29 @@ export const updateQuotation = async (prismaClient, id, input) => {
         },
       },
     });
+    await transaction.approvalRequest.deleteMany({
+      where: { quotationId: id },
+    });
+    await createApprovalRequests(
+      transaction,
+      id,
+      existing.salespersonId || "",
+      approvalDecision,
+      calculatedRisk,
+    );
     const quotation = await transaction.quotation.findUnique({
       where: { id },
       select: QUOTATION_FIELDS,
     });
-    return serializeQuotation({
-      ...quotation,
-      items: quotation.items.map((item, index) => ({
-        ...item,
-        ...calculated.items[index],
-      })),
-    });
+    return serializeQuotation(
+      withRisk(
+        quotation,
+        quotation.items.map((item, index) => ({
+          ...item,
+          ...calculated.items[index],
+        })),
+      ),
+    );
   });
 };
 
@@ -415,5 +451,38 @@ const decorateQuotation = async (prismaClient, quotation) => {
       return { ...item, ...governance };
     }),
   );
-  return serializeQuotation({ ...quotation, items });
+  return serializeQuotation(withRisk(quotation, items));
+};
+
+export const sendQuotation = async (prismaClient, id) => {
+  return prismaClient.$transaction(async (transaction) => {
+    const existing = await transaction.quotation.findUnique({
+      where: { id },
+      select: { id: true, status: true },
+    });
+    
+    if (!existing) {
+      throw serviceError("Quotation not found", 404);
+    }
+    
+    if (existing.status !== "APPROVED") {
+      throw serviceError("Only APPROVED quotations can be sent", 409);
+    }
+    
+    const pendingApprovals = await transaction.approvalRequest.count({
+      where: { quotationId: id, status: "PENDING" },
+    });
+    
+    if (pendingApprovals > 0) {
+      throw serviceError("Cannot send quotation with pending approvals", 409);
+    }
+
+    const updated = await transaction.quotation.update({
+      where: { id },
+      data: { status: "SENT" },
+      select: QUOTATION_FIELDS,
+    });
+    
+    return decorateQuotation(transaction, updated);
+  });
 };

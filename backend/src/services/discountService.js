@@ -19,18 +19,32 @@ const parsePercent = (value, field = "discountPercent") => {
   return normalized;
 };
 
+const toCents = (value) => {
+  const normalized = String(value).trim();
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
+    throw serviceError("grossLineAmount must be a valid monetary value", 400);
+  }
+  const [whole, fraction = ""] = normalized.split(".");
+  return BigInt(whole) * 100n + BigInt((fraction + "00").slice(0, 2));
+};
+
+export const calculateDiscountAmount = (grossLineAmount, discountPercent) => {
+  const amountCents = toCents(grossLineAmount);
+  const percent = parsePercent(discountPercent);
+  const [whole, fraction = ""] = percent.split(".");
+  const percentScaled =
+    BigInt(whole) * 100n + BigInt((fraction + "00").slice(0, 2));
+  const discountCents = (amountCents * percentScaled + 5000n) / 10000n;
+  return `${discountCents / 100n}.${String(discountCents % 100n).padStart(2, "0")}`;
+};
+
 export const getApplicableDiscountRule = async (
   prismaClient,
   customerTier,
   productCategory,
 ) => {
-  const rule = await prismaClient.discountRule.findUnique({
-    where: {
-      customerTier_productCategory: {
-        customerTier,
-        productCategory,
-      },
-    },
+  const rule = await prismaClient.discountRule.findFirst({
+    where: { customerTier, productCategory, active: true },
     select: { maxDiscountPercent: true },
   });
 

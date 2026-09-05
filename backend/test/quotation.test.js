@@ -3,6 +3,7 @@ import { after, before, describe, it } from "node:test";
 import jwt from "jsonwebtoken";
 import { createApp } from "../src/app.js";
 import {
+  calculateDiscountAmount,
   getApplicableDiscountRule,
   validateLineDiscount,
 } from "../src/services/discountService.js";
@@ -103,13 +104,26 @@ const prismaMock = {
     findUnique: async ({ where }) => products[where.id] || null,
   },
   discountRule: {
-    findUnique: async ({ where }) => {
-      const key = where.customerTier_productCategory;
-      if (key.customerTier === "GOLD" && key.productCategory === "Hardware") {
+    findFirst: async ({ where }) => {
+      if (
+        where.customerTier === "GOLD" &&
+        where.productCategory === "Hardware"
+      ) {
         return { maxDiscountPercent: "10.00" };
       }
       return null;
     },
+  },
+  approvalRule: {
+    findMany: async () => [],
+  },
+  approvalRequest: {
+    create: async ({ data }) => ({
+      id: `approval-${data.approvalRole}`,
+      approvalRole: data.approvalRole,
+      status: "PENDING",
+    }),
+    deleteMany: async () => undefined,
   },
   quotation: {
     findMany: async () => Object.values(quotations).map(quotationView),
@@ -294,6 +308,13 @@ describe("quotation creation and calculations", () => {
     assert.equal(body.data.items.length, 3);
     assert.equal(body.data.items[0].unitPrice, "80000.00");
     assert.equal(body.data.items[0].lineTotal, "160000.00");
+    assert.equal(body.data.risk.totalGross, "330000.00");
+    assert.equal(body.data.risk.totalDiscount, "0.00");
+    assert.equal(body.data.risk.blendedDiscountPercent, "0.0000");
+    assert.equal(body.data.risk.numberOfLines, 3);
+    assert.equal(body.data.risk.violatingLineCount, 0);
+    assert.equal(body.data.risk.compliantLineCount, 3);
+    assert.equal(body.data.risk.hasLineViolations, false);
     assert.equal("passwordHash" in body.data.salesperson, false);
   });
 
@@ -332,6 +353,7 @@ describe("quotation updates and atomicity", () => {
     assert.equal(body.data.subtotal, "80000.00");
     assert.equal(body.data.taxAmount, "8000.00");
     assert.equal(body.data.total, "88000.00");
+    assert.equal(body.data.risk.totalGross, "80000.00");
   });
 
   it("does not leave writes behind when an item fails validation", async () => {
@@ -466,5 +488,88 @@ describe("line-level discount governance", () => {
     });
     assert.equal(actualRule.maxAllowedDiscountPercent, "10.00");
     assert.equal(actualRule.compliant, true);
+  });
+
+  it("only considers active rules and exposes reusable discount arithmetic", async () => {
+    let lookup;
+    const inactiveRuleClient = {
+      discountRule: {
+        findFirst: async (args) => {
+          lookup = args;
+          return null;
+        },
+      },
+    };
+    const result = await getApplicableDiscountRule(
+      inactiveRuleClient,
+      "GOLD",
+      "Hardware",
+    );
+
+    assert.equal(lookup.where.active, true);
+    assert.deepEqual(result, {
+      maxAllowedDiscountPercent: "0",
+      ruleFound: false,
+    });
+    assert.equal(calculateDiscountAmount("160000.00", "10"), "16000.00");
+  });
+});
+
+describe("quotation send workflow", () => {
+  it("allows authorized roles to send an APPROVED quotation", async () => {
+    quotations[createdQuotationId].status = "APPROVED";
+    
+    // Ensure no pending approvals
+    const originalCount = prismaMock.approvalRequest.count;
+    prismaMock.approvalRequest.count = async () => 0;
+    
+    const response = await jsonRequest(
+      `/api/quotations/${createdQuotationId}/send`,
+      "POST",
+      {},
+      "SALESPERSON"
+    );
+    
+    prismaMock.approvalRequest.count = originalCount;
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(body.success, true);
+    assert.equal(body.data.status, "SENT");
+    assert.equal(quotations[createdQuotationId].status, "SENT");
+  });
+
+  it("rejects sending a DRAFT, PENDING_APPROVAL, or REJECTED quotation", async () => {
+    const statuses = ["DRAFT", "PENDING_APPROVAL", "REJECTED"];
+    
+    for (const status of statuses) {
+      quotations[createdQuotationId].status = status;
+      const response = await jsonRequest(
+        `/api/quotations/${createdQuotationId}/send`,
+        "POST",
+        {},
+        "SALESPERSON"
+      );
+      assert.equal(response.status, 409);
+    }
+  });
+
+  it("rejects sending when there are pending approvals", async () => {
+    quotations[createdQuotationId].status = "APPROVED";
+    
+    // Simulate pending approvals
+    const originalCount = prismaMock.approvalRequest.count;
+    prismaMock.approvalRequest.count = async () => 1;
+    
+    const response = await jsonRequest(
+      `/api/quotations/${createdQuotationId}/send`,
+      "POST",
+      {},
+      "SALESPERSON"
+    );
+    
+    prismaMock.approvalRequest.count = originalCount;
+    
+    assert.equal(response.status, 409);
   });
 });
