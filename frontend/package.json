@@ -4,21 +4,6 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-<<<<<<< HEAD
-    "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.3",
-    "vite": "^5.4.10"
-  }
-=======
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
@@ -31,5 +16,4 @@
     "lucide-react": "latest"
   },
   "devDependencies": {}
->>>>>>> 41bb50a8edcefe530efa5a2477ba1df49cc1e2ca
 }
