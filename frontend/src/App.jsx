@@ -41,13 +41,14 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         
         {/* Core Sales (Member 1) Routes */}
-        <Route path="/sales" element={<ProtectedRoute />}>
+        <Route path="/sales" element={<ProtectedRoute allowedRoles={["ADMIN", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} redirectTo="/customer/negotiations" />}>
           <Route element={<SalesLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             
             {/* Placeholders for next phases */}
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="customers" element={<CustomersPage />} />
+            <Route path="quotations" element={<QuotationBuilderPage />} />
             <Route path="quotations/new" element={<QuotationBuilderPage />} />
             <Route path="quotations/:id/edit" element={<QuotationBuilderPage />} />
             <Route path="quotations/:id" element={<QuotationDetailsPage />} />

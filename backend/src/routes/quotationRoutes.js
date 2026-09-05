@@ -4,7 +4,7 @@ import { createOrderController } from "../controllers/orderController.js";
 import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 import { createNegotiationController } from "../controllers/negotiationController.js";
 
-const INTERNAL_ROLES = ["ADMIN", "SALES", "MANAGER", "FINANCE", "OPERATIONS"];
+const INTERNAL_ROLES = ["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"];
 
 export const createQuotationRouter = (prismaClient) => {
   const router = Router();

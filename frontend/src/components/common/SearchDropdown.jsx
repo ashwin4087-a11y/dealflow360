@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react";
 import { quotationApi } from "../../api/quotationApi";
 import { customerApi } from "../../api/customerApi";
 import { productApi } from "../../api/productApi";
+import { customerQuotationApi } from "../../api/customerQuotationApi";
 import "./SearchDropdown.css";
 
 export default function SearchDropdown() {
@@ -22,6 +23,11 @@ export default function SearchDropdown() {
   const fetchSearchData = async () => {
     try {
       setLoading(true);
+      if (user?.role === "CUSTOMER") {
+        const quotationsRes = await customerQuotationApi.getQuotations().catch(() => ({ success: false, data: [] }));
+        return { quotations: quotationsRes.success ? quotationsRes.data : [], customers: [], products: [] };
+      }
+
       const [quotationsRes, customersRes, productsRes] = await Promise.all([
         quotationApi.getQuotations().catch(() => ({ success: false, data: [] })),
         customerApi.getCustomers().catch(() => ({ success: false, data: [] })),

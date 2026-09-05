@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "../../api/authApi";
 import { useAuth } from "../../contexts/AuthContext";
-import { ShieldCheck, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -40,9 +40,7 @@ export default function LoginPage() {
     <div className="app-shell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f9fafb' }}>
       <div className="panel" style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div className="brand-mark" style={{ margin: '0 auto 1rem', width: '48px', height: '48px', backgroundColor: '#2563eb', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
-            <ShieldCheck size={24} />
-          </div>
+          <img src="/logo.png" alt="DealFlow360" className="login-brand-logo" style={{ display: 'block', margin: '0 auto 1rem', width: '48px', height: '48px', objectFit: 'contain' }} />
           <h2>DealFlow360</h2>
           <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Core Sales Login</p>
         </div>

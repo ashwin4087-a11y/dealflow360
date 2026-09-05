@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import { Activity, AlertTriangle, Boxes, FileText, Users } from "lucide-react";
 import { approvalApi } from "../../api/approvalApi";
 import { customerApi } from "../../api/customerApi";
@@ -35,6 +36,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -44,7 +46,9 @@ export default function DashboardPage() {
         quotationApi.getQuotations(),
         customerApi.getCustomers(),
         productApi.getProducts(),
-        approvalApi.getPendingApprovals(),
+        ["ADMIN", "MANAGER", "FINANCE"].includes(user?.role)
+          ? approvalApi.getPendingApprovals()
+          : Promise.resolve({ data: [] }),
       ]);
       setQuotations(quotationResponse.data || []);
       setCustomers(customerResponse.data || []);
@@ -55,7 +59,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.role]);
 
   useEffect(() => { loadDashboard(); }, [loadDashboard]);
 

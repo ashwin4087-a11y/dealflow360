@@ -21,6 +21,24 @@ const ORDER_FIELDS = {
   },
 };
 
+const serializeOrder = (order) => ({
+  ...order,
+  items: order.items.map((item) => ({
+    ...item,
+    quantity: item.quantity.toString(),
+    unitPrice: item.unitPrice.toString(),
+    lineTotal: item.lineTotal.toString(),
+  })),
+});
+
+export const listOrders = async (prismaClient) => {
+  const orders = await prismaClient.order.findMany({
+    select: ORDER_FIELDS,
+    orderBy: { createdAt: "desc" },
+  });
+  return orders.map(serializeOrder);
+};
+
 export const convertQuotationToOrder = async (prismaClient, quotationId) => {
   return prismaClient.$transaction(async (transaction) => {
     // 1. Find quotation and verify existence/status

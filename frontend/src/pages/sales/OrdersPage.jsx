@@ -60,8 +60,8 @@ export default function OrdersPage() {
                 <tr key={o.id}>
                   <td><strong>{o.orderNumber}</strong></td>
                   <td>{o.quotationId}</td>
-                  <td>₹{parseFloat(o.totalAmount).toLocaleString()}</td>
-                  <td><span className="badge teal">{o.status}</span></td>
+                  <td>₹{o.items.reduce((total, item) => total + Number(item.lineTotal || 0), 0).toLocaleString("en-IN")}</td>
+                  <td><span className="badge teal">Confirmed</span></td>
                   <td>{new Date(o.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
