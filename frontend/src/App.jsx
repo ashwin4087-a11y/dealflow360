@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import SalesLayout from './components/layout/SalesLayout';
 
@@ -36,6 +36,18 @@ function FulfillmentRouteLayout() {
   );
 }
 
+/**
+ * Role-aware fallback redirect: CUSTOMER -> customer portal, everyone else -> sales dashboard.
+ * Unauthenticated users -> login.
+ */
+function RoleAwareRedirect() {
+  const { isAuthenticated, loading, user } = useAuth();
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role === "CUSTOMER") return <Navigate to="/customer/negotiations" replace />;
+  return <Navigate to="/sales/dashboard" replace />;
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -44,7 +56,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         
         {/* Core Sales (Member 1) Routes */}
-        <Route path="/sales" element={<ProtectedRoute allowedRoles={["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} redirectTo="/customer/negotiations" />}>
+        <Route path="/sales" element={<ProtectedRoute allowedRoles={["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
           <Route element={<SalesLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             
@@ -55,7 +67,7 @@ function App() {
             <Route path="quotations/new" element={<QuotationBuilderPage />} />
             <Route path="quotations/:id/edit" element={<QuotationBuilderPage />} />
             <Route path="quotations/:id" element={<QuotationDetailsPage />} />
-            <Route path="approvals" element={<ProtectedRoute allowedRoles={["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
+            <Route path="approvals" element={<ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "FINANCE"]} />}>
               <Route index element={<ApprovalsPage />} />
             </Route>
             <Route path="orders" element={<OrdersPage />} />
@@ -82,7 +94,7 @@ function App() {
         </Route>
 
         <Route path="/fulfillment" element={<ProtectedRoute allowedRoles={["ADMIN", "SALES", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
-          <Route element={<FulfillmentRouteLayout />}>
+          <Route element={<SalesLayout />}>
             <Route index element={<FulfillmentDashboardPage />} />
             <Route path="orders/:orderId" element={<OrderFulfillmentDetailPage />} />
             <Route path="warehouse-allocation/:orderId" element={<WarehouseAllocationPage />} />
@@ -94,14 +106,13 @@ function App() {
           </Route>
         </Route>
 
-
-
-        {/* Fallback routing */}
-        <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
+        {/* Role-aware fallback routing */}
+        <Route path="/" element={<RoleAwareRedirect />} />
+        <Route path="*" element={<RoleAwareRedirect />} />
       </Routes>
     </AuthProvider>
   );
 }
 
 export default App;
+

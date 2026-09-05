@@ -64,25 +64,21 @@ export default function ApprovalsPage() {
             <thead>
               <tr>
                 <th>Quote #</th>
-                <th>Customer</th>
-                <th>Total Value</th>
-                <th>Blended Discount</th>
-                <th>Margin</th>
-                <th>Risk Level</th>
+                <th>Reason</th>
+                <th>Requested Date</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {approvals.map(q => (
                 <tr key={q.id}>
-                  <td><strong>{q.quotationNumber}</strong></td>
-                  <td>{q.customer.name}</td>
-                  <td>₹{parseFloat(q.totalAmount).toLocaleString()}</td>
-                  <td>{parseFloat(q.blendedDiscountPercent).toFixed(2)}%</td>
-                  <td>₹{parseFloat(q.marginAmount).toLocaleString()}</td>
+                  <td><strong>{q.quotation?.quotationNumber || 'Unknown'}</strong></td>
+                  <td>{q.reason}</td>
+                  <td>{new Date(q.createdAt).toLocaleDateString()}</td>
                   <td>
-                    <span className={`badge ${q.discountRiskLevel === 'HIGH' ? 'amber' : 'gray'}`}>
-                      {q.discountRiskLevel}
+                    <span className="badge amber">
+                      Pending
                     </span>
                   </td>
                   <td>
@@ -90,8 +86,8 @@ export default function ApprovalsPage() {
                       <button className="small-button" style={{ color: '#059669', borderColor: '#059669' }} onClick={() => handleAction(q.id, 'Approve')}>
                         <CheckCircle size={14} /> Approve
                       </button>
-                      <button className="small-button" onClick={() => navigate(`/sales/quotations/${q.id}/edit`)}>
-                        Review / What-If
+                      <button className="small-button" onClick={() => navigate(`/sales/quotations/${q.quotation?.id}`)}>
+                        Review
                       </button>
                       <button className="small-button" style={{ color: '#dc2626', borderColor: '#dc2626' }} onClick={() => handleAction(q.id, 'Reject')}>
                         <XCircle size={14} /> Reject
