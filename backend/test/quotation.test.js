@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import jwt from "jsonwebtoken";
 import { createApp } from "../src/app.js";
+import {
+  getApplicableDiscountRule,
+  validateLineDiscount,
+} from "../src/services/discountService.js";
 
 process.env.JWT_SECRET = "test-secret";
 
@@ -39,6 +43,15 @@ const products = {
     productType: "ONE_TIME",
     basePrice: "100.00",
     active: false,
+  },
+  "product-3": {
+    id: "product-3",
+    name: "Support Service",
+    sku: "SUP-001",
+    category: "Software",
+    productType: "RECURRING",
+    basePrice: "1000.00",
+    active: true,
   },
 };
 
@@ -88,6 +101,15 @@ const prismaMock = {
   },
   product: {
     findUnique: async ({ where }) => products[where.id] || null,
+  },
+  discountRule: {
+    findUnique: async ({ where }) => {
+      const key = where.customerTier_productCategory;
+      if (key.customerTier === "GOLD" && key.productCategory === "Hardware") {
+        return { maxDiscountPercent: "10.00" };
+      }
+      return null;
+    },
   },
   quotation: {
     findMany: async () => Object.values(quotations).map(quotationView),
@@ -339,5 +361,110 @@ describe("quotation updates and atomicity", () => {
       validQuote(),
     );
     assert.equal(response.status, 409);
+  });
+});
+
+describe("line-level discount governance", () => {
+  it("calculates discounts, discounted subtotal, tax, and total from backend data", async () => {
+    const response = await jsonRequest("/api/quotations", "POST", {
+      customerId: customer.id,
+      taxPercent: "18",
+      items: [
+        { productId: "product-1", quantity: "2", discountPercent: "10" },
+        { productId: "product-2", quantity: "3", discountPercent: "0" },
+      ],
+    });
+    const body = await response.json();
+    const [laptop, monitor] = body.data.items;
+
+    assert.equal(response.status, 201);
+    assert.equal(laptop.discountAmount, "16000.00");
+    assert.equal(laptop.lineTotal, "144000.00");
+    assert.equal(laptop.maxAllowedDiscountPercent, "10.00");
+    assert.equal(laptop.compliant, true);
+    assert.equal(monitor.discountAmount, "0.00");
+    assert.equal(monitor.compliant, true);
+    assert.equal(body.data.subtotal, "234000.00");
+    assert.equal(body.data.taxAmount, "42120.00");
+    assert.equal(body.data.total, "276120.00");
+    assert.equal(body.data.discountAmount, "16000.00");
+  });
+
+  it("retains an above-limit request and reports it as non-compliant", async () => {
+    const response = await jsonRequest("/api/quotations", "POST", {
+      customerId: customer.id,
+      items: [
+        { productId: "product-1", quantity: "1", discountPercent: "12" },
+        { productId: "product-2", quantity: "1", discountPercent: "5" },
+      ],
+    });
+    const body = await response.json();
+
+    assert.equal(response.status, 201);
+    assert.equal(body.data.items[0].discountPercent, "12");
+    assert.equal(body.data.items[0].maxAllowedDiscountPercent, "10.00");
+    assert.equal(body.data.items[0].compliant, false);
+    assert.equal(body.data.items[1].compliant, true);
+  });
+
+  it("rejects invalid discounts and client governance fields", async () => {
+    const negative = await jsonRequest("/api/quotations", "POST", {
+      customerId: customer.id,
+      items: [{ productId: "product-1", quantity: "1", discountPercent: "-1" }],
+    });
+    const overLimit = await jsonRequest("/api/quotations", "POST", {
+      customerId: customer.id,
+      items: [
+        { productId: "product-1", quantity: "1", discountPercent: "101" },
+      ],
+    });
+    const malformed = await jsonRequest("/api/quotations", "POST", {
+      customerId: customer.id,
+      items: [
+        { productId: "product-1", quantity: "1", discountPercent: "Infinity" },
+      ],
+    });
+    const spoofedTier = await jsonRequest("/api/quotations", "POST", {
+      customerId: customer.id,
+      customerTier: "GOLD",
+      items: [{ productId: "product-1", quantity: "1", discountPercent: "1" }],
+    });
+    const spoofedAmount = await jsonRequest("/api/quotations", "POST", {
+      customerId: customer.id,
+      items: [
+        {
+          productId: "product-1",
+          quantity: "1",
+          discountPercent: "1",
+          discountAmount: "0",
+        },
+      ],
+    });
+
+    assert.equal(negative.status, 400);
+    assert.equal(overLimit.status, 400);
+    assert.equal(malformed.status, 400);
+    assert.equal(spoofedTier.status, 400);
+    assert.equal(spoofedAmount.status, 400);
+  });
+
+  it("uses actual customer and product data and restricts missing rules", async () => {
+    const missingRule = await getApplicableDiscountRule(
+      prismaMock,
+      "GOLD",
+      "Unknown",
+    );
+    const actualRule = await validateLineDiscount(prismaMock, {
+      customerTier: customer.customerTier,
+      productCategory: products["product-1"].category,
+      discountPercent: "10",
+    });
+
+    assert.deepEqual(missingRule, {
+      maxAllowedDiscountPercent: "0",
+      ruleFound: false,
+    });
+    assert.equal(actualRule.maxAllowedDiscountPercent, "10.00");
+    assert.equal(actualRule.compliant, true);
   });
 });

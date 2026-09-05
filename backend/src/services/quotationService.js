@@ -1,4 +1,8 @@
 import { getProductPrice } from "./pricingService.js";
+import {
+  validateDiscountPercent,
+  validateLineDiscount,
+} from "./discountService.js";
 
 const QUOTATION_FIELDS = {
   id: true,
@@ -100,6 +104,14 @@ const multiplyMoney = (quantity, unitPrice) => {
   return (numerator + denominator / 2n) / denominator;
 };
 
+const percentOfMoney = (amountCents, percent) => {
+  const percentValue = String(percent);
+  const [whole, fraction = ""] = percentValue.split(".");
+  const percentScaled =
+    BigInt(whole) * 100n + BigInt((fraction + "00").slice(0, 2));
+  return (amountCents * percentScaled + 5000n) / 10000n;
+};
+
 const normalizeInput = (input, { partial = false } = {}) => {
   if (!input || typeof input !== "object" || Array.isArray(input))
     throw serviceError("Quotation data must be an object", 400);
@@ -125,13 +137,16 @@ const normalizeInput = (input, { partial = false } = {}) => {
         throw serviceError("Each quotation item must be an object", 400);
       if (
         Object.keys(item).some(
-          (field) => !["productId", "quantity"].includes(field),
+          (field) =>
+            !["productId", "quantity", "discountPercent"].includes(field),
         )
       )
         throw serviceError("Quotation item contains unsupported fields", 400);
       if (typeof item.productId !== "string" || !item.productId.trim())
         throw serviceError("productId is required", 400);
       parseDecimal(item.quantity, "quantity", { positive: true });
+      if (item.discountPercent !== undefined)
+        validateDiscountPercent(item.discountPercent);
     });
   }
   return {
@@ -200,6 +215,15 @@ const serializeQuotation = (quotation) => {
       discountPercent: decimalString(item.discountPercent),
       discountAmount: decimalString(item.discountAmount),
       lineTotal: decimalString(item.lineTotal),
+      ...(item.maxAllowedDiscountPercent !== undefined
+        ? {
+            maxAllowedDiscountPercent: decimalString(
+              item.maxAllowedDiscountPercent,
+            ),
+          }
+        : {}),
+      ...(item.compliant !== undefined ? { compliant: item.compliant } : {}),
+      ...(item.ruleFound !== undefined ? { ruleFound: item.ruleFound } : {}),
       ...(item.product
         ? {
             product: Object.fromEntries(
@@ -217,23 +241,46 @@ const calculateQuote = async (prismaClient, input) => {
   const normalized = normalizeInput(input);
   const customer = await prismaClient.customer.findUnique({
     where: { id: normalized.customerId },
-    select: { id: true },
+    select: { id: true, customerTier: true },
   });
   if (!customer) throw serviceError("Customer not found", 404);
 
   const items = [];
   let subtotalCents = 0n;
+  let grossSubtotalCents = 0n;
+  let discountAmountCents = 0n;
   for (const item of normalized.items) {
+    const product = await prismaClient.product.findUnique({
+      where: { id: item.productId },
+      select: { id: true, category: true },
+    });
+    if (!product) throw serviceError("Product not found", 404);
     const unitPrice = await getProductPrice(prismaClient, item.productId);
-    const lineTotal = multiplyMoney(item.quantity, unitPrice);
+    const discountPercent =
+      item.discountPercent === undefined
+        ? "0"
+        : validateDiscountPercent(item.discountPercent);
+    const governance = await validateLineDiscount(prismaClient, {
+      customerTier: customer.customerTier,
+      productCategory: product.category,
+      discountPercent,
+    });
+    const grossLineAmount = multiplyMoney(item.quantity, unitPrice);
+    const discountAmount = percentOfMoney(grossLineAmount, discountPercent);
+    const lineTotal = grossLineAmount - discountAmount;
+    grossSubtotalCents += grossLineAmount;
+    discountAmountCents += discountAmount;
     subtotalCents += lineTotal;
     items.push({
       productId: item.productId,
       quantity: parseDecimal(item.quantity, "quantity", { positive: true }),
       unitPrice: decimalString(unitPrice),
-      discountPercent: "0",
-      discountAmount: "0.00",
+      discountPercent,
+      discountAmount: centsToString(discountAmount),
       lineTotal: centsToString(lineTotal),
+      maxAllowedDiscountPercent: governance.maxAllowedDiscountPercent,
+      compliant: governance.compliant,
+      ruleFound: governance.ruleFound,
     });
   }
 
@@ -245,6 +292,8 @@ const calculateQuote = async (prismaClient, input) => {
     normalized,
     items,
     subtotal: centsToString(subtotalCents),
+    grossSubtotal: centsToString(grossSubtotalCents),
+    discountAmount: centsToString(discountAmountCents),
     taxPercent,
     taxAmount: centsToString(taxCents),
     total: centsToString(subtotalCents + taxCents),
@@ -265,16 +314,27 @@ export const createQuotation = async (prismaClient, salespersonId, input) => {
         status: "DRAFT",
         subtotal: calculated.subtotal,
         discountPercent: "0",
-        discountAmount: "0.00",
+        discountAmount: calculated.discountAmount,
         taxPercent: calculated.taxPercent,
         taxAmount: calculated.taxAmount,
         total: calculated.total,
         marginAmount: "0.00",
-        items: { create: calculated.items },
+        items: {
+          create: calculated.items.map(
+            ({ maxAllowedDiscountPercent, compliant, ruleFound, ...item }) =>
+              item,
+          ),
+        },
       },
       select: QUOTATION_FIELDS,
     });
-    return serializeQuotation(quotation);
+    return serializeQuotation({
+      ...quotation,
+      items: quotation.items.map((item, index) => ({
+        ...item,
+        ...calculated.items[index],
+      })),
+    });
   });
 };
 
@@ -283,7 +343,9 @@ export const listQuotations = async (prismaClient) => {
     select: QUOTATION_FIELDS,
     orderBy: { createdAt: "desc" },
   });
-  return quotations.map(serializeQuotation);
+  return Promise.all(
+    quotations.map((quotation) => decorateQuotation(prismaClient, quotation)),
+  );
 };
 
 export const getQuotation = async (prismaClient, id) => {
@@ -292,7 +354,7 @@ export const getQuotation = async (prismaClient, id) => {
     select: QUOTATION_FIELDS,
   });
   if (!quotation) throw serviceError("Quotation not found", 404);
-  return serializeQuotation(quotation);
+  return decorateQuotation(prismaClient, quotation);
 };
 
 export const updateQuotation = async (prismaClient, id, input) => {
@@ -313,18 +375,45 @@ export const updateQuotation = async (prismaClient, id, input) => {
         customerId: calculated.normalized.customerId,
         subtotal: calculated.subtotal,
         discountPercent: "0",
-        discountAmount: "0.00",
+        discountAmount: calculated.discountAmount,
         taxPercent: calculated.taxPercent,
         taxAmount: calculated.taxAmount,
         total: calculated.total,
         marginAmount: "0.00",
-        items: { create: calculated.items },
+        items: {
+          create: calculated.items.map(
+            ({ maxAllowedDiscountPercent, compliant, ruleFound, ...item }) =>
+              item,
+          ),
+        },
       },
     });
     const quotation = await transaction.quotation.findUnique({
       where: { id },
       select: QUOTATION_FIELDS,
     });
-    return serializeQuotation(quotation);
+    return serializeQuotation({
+      ...quotation,
+      items: quotation.items.map((item, index) => ({
+        ...item,
+        ...calculated.items[index],
+      })),
+    });
   });
+};
+
+const decorateQuotation = async (prismaClient, quotation) => {
+  if (!quotation.customer || !quotation.items)
+    return serializeQuotation(quotation);
+  const items = await Promise.all(
+    quotation.items.map(async (item) => {
+      const governance = await validateLineDiscount(prismaClient, {
+        customerTier: quotation.customer.customerTier,
+        productCategory: item.product.category,
+        discountPercent: item.discountPercent,
+      });
+      return { ...item, ...governance };
+    }),
+  );
+  return serializeQuotation({ ...quotation, items });
 };
