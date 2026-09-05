@@ -66,7 +66,7 @@ export default function SearchDropdown() {
 
     // Customer role: only show own data
     if (user?.role === "CUSTOMER") {
-      const customerId = user?.id;
+      const customerId = user?.customerId || user?.id;
       filteredQuotations = data.quotations.filter(q => q.customerId === customerId);
       filteredCustomers = data.customers.filter(c => c.id === customerId);
       filteredProducts = [];
@@ -82,7 +82,7 @@ export default function SearchDropdown() {
     const searchResults = {
       quotations: filteredQuotations.filter(q => {
         const qNum = (q.quotationNumber || q.reference || q.id || "").toString().toLowerCase();
-        const qCust = (q.customerName || q.customer || "").toString().toLowerCase();
+        const qCust = (q.customer?.name || q.customer?.company || q.customerName || q.customer || "").toString().toLowerCase();
         return qNum.includes(lowerQuery) || qCust.includes(lowerQuery);
       }).slice(0, 5),
       
@@ -100,7 +100,7 @@ export default function SearchDropdown() {
       
       deals: filteredDeals.filter(d => {
         const dNum = (d.quotationNumber || d.reference || d.id || "").toString().toLowerCase();
-        const dCust = (d.customerName || d.customer || "").toString().toLowerCase();
+        const dCust = (d.customer?.name || d.customer?.company || d.customerName || d.customer || "").toString().toLowerCase();
         return dNum.includes(lowerQuery) || dCust.includes(lowerQuery);
       }).slice(0, 3),
     };
@@ -221,7 +221,7 @@ export default function SearchDropdown() {
 
   const getSubtitle = (item, type) => {
     if (type === "quotation" || type === "deal") {
-      return item.customerName || item.customer || "No customer";
+      return item.customer?.name || item.customer?.company || item.customerName || item.customer || "No customer";
     } else if (type === "customer") {
       return item.industry || "Enterprise";
     } else if (type === "product") {

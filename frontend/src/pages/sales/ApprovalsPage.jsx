@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { approvalApi } from "../../api/approvalApi";
+import { useNavigate } from "react-router-dom";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 
 export default function ApprovalsPage() {
+  const navigate = useNavigate();
   const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -87,6 +89,9 @@ export default function ApprovalsPage() {
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button className="small-button" style={{ color: '#059669', borderColor: '#059669' }} onClick={() => handleAction(q.id, 'Approve')}>
                         <CheckCircle size={14} /> Approve
+                      </button>
+                      <button className="small-button" onClick={() => navigate(`/sales/quotations/${q.id}/edit`)}>
+                        Review / What-If
                       </button>
                       <button className="small-button" style={{ color: '#dc2626', borderColor: '#dc2626' }} onClick={() => handleAction(q.id, 'Reject')}>
                         <XCircle size={14} /> Reject

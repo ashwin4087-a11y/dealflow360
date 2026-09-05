@@ -5,6 +5,7 @@ const decimalString = (value) => String(value);
 
 const CUSTOMER_QUOTATION_FIELDS = {
   id: true,
+  customerId: true,
   quotationNumber: true,
   status: true,
   subtotal: true,

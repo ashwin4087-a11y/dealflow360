@@ -2,6 +2,7 @@ import {
   createQuotation,
   getQuotation,
   listQuotations,
+  previewQuotation,
   updateQuotation,
   sendQuotation,
 } from "../services/quotationService.js";
@@ -31,6 +32,16 @@ export const createQuotationController = (prismaClient) => ({
       res.json({
         success: true,
         data: await getQuotation(prismaClient, req.params.id),
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+  preview: async (req, res, next) => {
+    try {
+      res.json({
+        success: true,
+        data: await previewQuotation(prismaClient, req.params.id, req.body),
       });
     } catch (error) {
       next(error);

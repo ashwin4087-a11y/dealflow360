@@ -3,7 +3,10 @@ import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { customerApi } from "../../api/customerApi";
 import { productApi } from "../../api/productApi";
 import { quotationApi } from "../../api/quotationApi";
-import { Plus, Trash2, Save, Send, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Save, Send, AlertTriangle, SlidersHorizontal } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import WhatIfSimulator from "../../components/quotation/WhatIfSimulator";
+import { intelligenceApi } from "../../api/intelligenceApi";
 
 export default function QuotationBuilderPage() {
   const [searchParams] = useSearchParams();
@@ -21,6 +24,9 @@ export default function QuotationBuilderPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [simulatorOpen, setSimulatorOpen] = useState(false);
+  const [recommendations, setRecommendations] = useState([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     const initBuilder = async () => {
@@ -42,8 +48,11 @@ export default function QuotationBuilderPage() {
             setItems(qRes.data.items.map(item => ({
               productId: item.productId,
               quantity: item.quantity,
-              requestedDiscountPercent: item.requestedDiscountPercent || 0
+              discountPercent: item.discountPercent || 0
             })));
+            intelligenceApi.quotationRecommendations(qRes.data.id)
+              .then((response) => setRecommendations(response.data || []))
+              .catch(() => setRecommendations([]));
           }
         } else if (custRes.success && custRes.data) {
           setCustomer(custRes.data);
@@ -62,7 +71,7 @@ export default function QuotationBuilderPage() {
 
   const addItem = () => {
     if (catalog.length > 0) {
-      setItems([...items, { productId: catalog[0].id, quantity: 1, requestedDiscountPercent: 0 }]);
+      setItems([...items, { productId: catalog[0].id, quantity: 1, discountPercent: 0 }]);
     }
   };
 
@@ -82,7 +91,7 @@ export default function QuotationBuilderPage() {
     try {
       let res;
       if (id) {
-        res = await quotationApi.updateQuotation(id, items);
+        res = await quotationApi.updateQuotation(id, items, customer.id);
       } else {
         res = await quotationApi.createQuotation(customer.id, items);
       }
@@ -96,6 +105,25 @@ export default function QuotationBuilderPage() {
       }
     } catch (err) {
       setError(err.message || "Failed to save quotation");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const applyScenario = async (scenarioItems) => {
+    setSaving(true);
+    setError("");
+    try {
+      const response = await quotationApi.updateQuotation(id, scenarioItems, customer.id);
+      setQuotation(response.data);
+      setItems(response.data.items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        discountPercent: item.discountPercent || 0,
+      })));
+      setSimulatorOpen(false);
+    } catch (requestError) {
+      setError(requestError.message || "Failed to apply scenario");
     } finally {
       setSaving(false);
     }
@@ -120,6 +148,11 @@ export default function QuotationBuilderPage() {
           >
             <Save size={16} /> Save Draft / Calculate
           </button>
+          {quotation && (
+            <button className="secondary-button" type="button" onClick={() => setSimulatorOpen(true)} disabled={saving}>
+              <SlidersHorizontal size={16} /> What-If
+            </button>
+          )}
           {quotation && quotation.status === "DRAFT" && (
              <button className="primary-button" onClick={() => navigate(`/sales/quotations/${quotation.id}`)}>
                Review & Submit <Send size={16} />
@@ -133,6 +166,15 @@ export default function QuotationBuilderPage() {
           <AlertTriangle size={16} />
           <span style={{ fontSize: '0.875rem', flex: 1 }}>{error}</span>
         </div>
+      )}
+
+      {quotation && recommendations.length > 0 && (
+        <section className="panel" style={{ marginBottom: "1rem" }}>
+          <div className="section-heading"><h2>Product recommendations</h2><span className="badge blue">Backend</span></div>
+          <div className="table-wrap"><table><thead><tr><th>Product</th><th>Type</th><th>Reason</th><th>Value</th></tr></thead><tbody>
+            {recommendations.map((recommendation) => <tr key={recommendation.product.id}><td><strong>{recommendation.product.name}</strong><small>{recommendation.product.sku}</small></td><td><span className="badge teal">{recommendation.type}</span></td><td>{recommendation.reason}</td><td>{recommendation.potentialValue ? `₹${Number(recommendation.potentialValue).toLocaleString("en-IN")}` : "Available"}</td></tr>)}
+          </tbody></table></div>
+        </section>
       )}
 
       <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
@@ -183,8 +225,8 @@ export default function QuotationBuilderPage() {
                           type="number" 
                           min="0"
                           max="100"
-                          value={item.requestedDiscountPercent} 
-                          onChange={(e) => updateItem(index, 'requestedDiscountPercent', parseFloat(e.target.value) || 0)}
+                          value={item.discountPercent}
+                          onChange={(e) => updateItem(index, 'discountPercent', parseFloat(e.target.value) || 0)}
                           style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
                         />
                       </td>
@@ -223,7 +265,7 @@ export default function QuotationBuilderPage() {
               <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
                   <span style={{ color: '#4b5563' }}>Subtotal</span>
-                  <strong>₹{parseFloat(quotation.subTotal).toLocaleString()}</strong>
+                  <strong>₹{parseFloat(quotation.subtotal).toLocaleString()}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
                   <span style={{ color: '#4b5563' }}>Discount Amount</span>
@@ -235,7 +277,7 @@ export default function QuotationBuilderPage() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', paddingTop: '0.5rem' }}>
                   <strong>Final Total</strong>
-                  <strong>₹{parseFloat(quotation.totalAmount).toLocaleString()}</strong>
+                  <strong>₹{parseFloat(quotation.total).toLocaleString()}</strong>
                 </div>
                 
                 <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
@@ -245,7 +287,7 @@ export default function QuotationBuilderPage() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                     <small style={{ color: '#4b5563' }}>Blended Discount</small>
-                    <small><strong>{parseFloat(quotation.blendedDiscountPercent).toFixed(2)}%</strong></small>
+                    <small><strong>{parseFloat(quotation.risk?.blendedDiscountPercent || 0).toFixed(2)}%</strong></small>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <small style={{ color: '#4b5563' }}>Margin</small>
@@ -258,6 +300,14 @@ export default function QuotationBuilderPage() {
         </div>
         
       </div>
+      {simulatorOpen && quotation && (
+        <WhatIfSimulator
+          quotation={quotation}
+          canApply={quotation.status === "DRAFT" && (user?.role === "SALESPERSON" || user?.role === "ADMIN")}
+          onApply={applyScenario}
+          onClose={() => setSimulatorOpen(false)}
+        />
+      )}
     </>
   );
 }

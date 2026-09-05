@@ -9,6 +9,13 @@ export const quotationApi = {
     return apiFetch(`/quotations/${id}`);
   },
 
+  previewQuotation: async (id, items) => {
+    return apiFetch(`/quotations/${id}/simulate`, {
+      method: "POST",
+      body: JSON.stringify({ items }),
+    });
+  },
+
   createQuotation: async (customerId, items) => {
     return apiFetch("/quotations", {
       method: "POST",
@@ -16,10 +23,10 @@ export const quotationApi = {
     });
   },
 
-  updateQuotation: async (id, items) => {
+  updateQuotation: async (id, items, customerId) => {
     return apiFetch(`/quotations/${id}`, {
       method: "PUT",
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ customerId, items }),
     });
   },
 

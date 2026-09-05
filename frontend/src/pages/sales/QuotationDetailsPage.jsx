@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { quotationApi } from "../../api/quotationApi";
-import { Send, Edit3, ArrowRight, CheckCircle, Package } from "lucide-react";
+import { Send, Edit3, Package } from "lucide-react";
 
 export default function QuotationDetailsPage() {
   const { id } = useParams();
@@ -60,21 +60,6 @@ export default function QuotationDetailsPage() {
     }
   };
 
-  const handleCustomerMock = async (action) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/customer/quotations/${id}/${action}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('dealflow_token')}`
-        }
-      });
-      if (response.ok) fetchDetails();
-    } catch (err) {
-      alert(`Mock customer ${action} failed`);
-    }
-  };
-
   if (loading) return <div style={{ padding: "2rem" }}>Loading quotation...</div>;
   if (error || !quotation) return <div style={{ padding: "2rem", color: "red" }}>{error}</div>;
 
@@ -98,14 +83,7 @@ export default function QuotationDetailsPage() {
             </button>
           )}
           {quotation.status === 'SENT' && (
-            <>
-              <button className="secondary-button" onClick={() => handleCustomerMock('accept')} style={{ color: '#059669', borderColor: '#059669' }}>
-                <CheckCircle size={16} /> [Mock] Customer Accept
-              </button>
-              <button className="secondary-button" onClick={() => handleCustomerMock('reject')} style={{ color: '#dc2626', borderColor: '#dc2626' }}>
-                [Mock] Customer Reject
-              </button>
-            </>
+            <span className="badge blue">Awaiting customer response</span>
           )}
           {quotation.status === 'ACCEPTED' && (
             <button className="primary-button" onClick={handleConvert} style={{ backgroundColor: '#059669', borderColor: '#059669' }}>
@@ -139,8 +117,8 @@ export default function QuotationDetailsPage() {
                       <td>{item.product.name}</td>
                       <td>{item.quantity}</td>
                       <td>₹{parseFloat(item.unitPrice).toLocaleString()}</td>
-                      <td>{item.requestedDiscountPercent}%</td>
-                      <td>₹{parseFloat(item.totalPrice).toLocaleString()}</td>
+                      <td>{item.discountPercent}%</td>
+                      <td>₹{parseFloat(item.lineTotal).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -162,7 +140,7 @@ export default function QuotationDetailsPage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
                 <span style={{ color: '#4b5563' }}>Subtotal</span>
-                <strong>₹{parseFloat(quotation.subTotal).toLocaleString()}</strong>
+                <strong>₹{parseFloat(quotation.subtotal).toLocaleString()}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
                 <span style={{ color: '#4b5563' }}>Discount Amount</span>
@@ -174,7 +152,7 @@ export default function QuotationDetailsPage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', paddingTop: '0.5rem' }}>
                 <strong>Final Total</strong>
-                <strong>₹{parseFloat(quotation.totalAmount).toLocaleString()}</strong>
+                <strong>₹{parseFloat(quotation.total).toLocaleString()}</strong>
               </div>
             </div>
           </section>

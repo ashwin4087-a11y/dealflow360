@@ -6,6 +6,8 @@ import {
   ShieldCheck, Sparkles, Target, Truck, Users, X, Zap
 } from 'lucide-react';
 import '../../styles.css';
+import { useAuth } from '../../contexts/AuthContext';
+import { intelligenceApi } from '../../api/intelligenceApi';
 
 // ─── Storage keys (as specified in requirements) ───────────────────────────────
 const SK = {
@@ -293,6 +295,16 @@ function RiskTable({ onNavigate }) {
 
 // ─── Existing intelligence pages (unchanged layout) ────────────────────────────
 function HealthPage({ onNavigate }) {
+  const [health, setHealth] = useState([]);
+  const [healthError, setHealthError] = useState("");
+
+  useEffect(() => {
+    intelligenceApi.dealHealth()
+      .then((response) => setHealth(response.data || []))
+      .catch((error) => setHealthError(error.message || "Deal health is unavailable."));
+  }, []);
+
+  const count = (status) => health.filter((deal) => deal.status === status).length;
   return (
     <>
       <PageHeader
@@ -303,11 +315,18 @@ function HealthPage({ onNavigate }) {
         onAction={() => onNavigate('rules')}
       />
       <div className="metrics">
-        <Metric label="Healthy Deals"      value="42 Deals"   detail="On-track velocity · Stable margins"                  badge="Score 75–100" />
-        <Metric label="At-Risk Deals"      value="14 Deals"   detail="Warning flags on backorders or legal redlines"        badge="Score 50–74"  tone="amber" />
-        <Metric label="Critical Deals"     value="8 Deals"    detail="Severe discount pressure or stalled stakeholder"      badge="Score below 50" tone="red" />
-        <Metric label="Revenue Protected"  value="₹12.40 Cr"  detail="8 deals successfully rescued this quarter"           badge="+28%"         tone="teal" />
+        <Metric label="Healthy Deals"      value={`${count('HEALTHY')} Deals`}   detail="Backend-evaluated active quotations"                  badge="Live" />
+        <Metric label="At-Risk Deals"      value={`${count('AT_RISK')} Deals`}   detail="Discount, inactivity, approval, or negotiation signals" badge="Live" tone="amber" />
+        <Metric label="Critical Deals"     value={`${count('CRITICAL')} Deals`}  detail="Multiple active risk signals"                       badge="Live" tone="red" />
+        <Metric label="Deals Evaluated"    value={`${health.length} Deals`}       detail="Shared quotation data"                              badge="API" tone="teal" />
       </div>
+      {healthError && <div className="empty-state">{healthError}</div>}
+      {!healthError && <Section title="Live deal health" icon={Gauge}>
+        <div className="table-wrap"><table><thead><tr><th>Quotation</th><th>Status</th><th>Risk score</th><th>Root causes</th><th>Evaluated</th></tr></thead><tbody>
+          {health.map((deal) => <tr key={deal.quotationId}><td><strong>{deal.quotationNumber}</strong></td><td><span className={`status ${deal.status === 'CRITICAL' ? 'critical' : deal.status === 'HEALTHY' ? 'success' : 'warning'}`}>{deal.status}</span></td><td>{deal.riskScore ?? 'Customer-safe'}</td><td>{deal.rootCauses?.join(', ') || 'No active risk signals'}</td><td>{new Date(deal.lastEvaluatedAt).toLocaleString()}</td></tr>)}
+          {!health.length && <tr><td colSpan="5" className="empty-state">No active quotations available.</td></tr>}
+        </tbody></table></div>
+      </Section>}
       <HealthOverview onNavigate={onNavigate} />
       <Section title="Integrated deal health & automated rescue loop" icon={Sparkles}>
         <div className="stepper">
@@ -465,6 +484,13 @@ function DealDetailPage({ onNavigate }) {
 function RescuePage({ onNavigate }) {
   const [rescueStatus,   setRescueStatus]   = useState('Awaiting action');
   const [completedAction, setCompletedAction] = useState('');
+  const [rescueActions, setRescueActions] = useState([]);
+  const [rescueError, setRescueError] = useState("");
+  useEffect(() => {
+    intelligenceApi.dealRescue()
+      .then((response) => setRescueActions(response.data || []))
+      .catch((error) => setRescueError(error.message || "Rescue recommendations are unavailable."));
+  }, []);
   const runAction = (label) => { setCompletedAction(label); setRescueStatus('Action in progress'); };
   return (
     <>
@@ -474,11 +500,16 @@ function RescuePage({ onNavigate }) {
       </div>
       <PageHeader eyebrow="Revenue Intelligence / Intervention desk" title="Deal Rescue" description="Move from risk to a coordinated intervention plan, then track the outcome protecting the forecast." action="View deal intelligence" onAction={() => onNavigate('deal-detail')} />
       <div className="metrics">
-        <Metric label="Open rescue cases"      value="8 Deals"     detail="3 critical cases require action today"   badge="Immediate"   tone="red"  />
-        <Metric label="Revenue at risk"        value="₹21.65 Cr"   detail="Across 14 active intervention plans"     badge="-8.4% WoW"   tone="amber"/>
-        <Metric label="Protected this quarter" value="₹12.40 Cr"   detail="8 deals successfully rescued"            badge="+28%"        tone="teal" />
+        <Metric label="Open rescue actions"    value={`${rescueActions.length} Actions`} detail="Generated from live deal-health signals" badge="API" tone="red" />
+        <Metric label="High priority"          value={`${rescueActions.filter((action) => action.priority === 'HIGH').length} Actions`} detail="Requires timely intervention" badge="Priority" tone="amber"/>
+        <Metric label="Deals covered"          value={`${new Set(rescueActions.map((action) => action.quotationId)).size} Deals`} detail="Shared quotation data" badge="Live" tone="teal" />
         <Metric label="Rescue status"          value={rescueStatus} detail={completedAction || 'Select playbook action'} badge={rescueStatus === 'Action in progress' ? 'Live' : 'Needs action'} tone={rescueStatus === 'Action in progress' ? 'teal' : 'red'} />
       </div>
+      {rescueError && <div className="empty-state">{rescueError}</div>}
+      {!rescueError && <Section title="Live rescue recommendations" icon={Zap}><div className="table-wrap"><table><thead><tr><th>Quotation</th><th>Priority</th><th>Action</th><th>Reason</th><th>Expected impact</th><th>Approval</th></tr></thead><tbody>
+        {rescueActions.map((action, index) => <tr key={`${action.quotationId}-${index}`}><td><strong>{action.quotationNumber}</strong></td><td><span className={`status ${action.priority === 'HIGH' ? 'critical' : 'warning'}`}>{action.priority}</span></td><td>{action.action}</td><td>{action.reason}</td><td>{action.expectedImpact}</td><td>{action.approvalRequired ? 'Required' : 'Not required'}</td></tr>)}
+        {!rescueActions.length && <tr><td colSpan="6" className="empty-state">No active rescue actions.</td></tr>}
+      </tbody></table></div></Section>}
       <Section title="Rescue workflow" icon={Zap}>
         <div className="rescue-flow">
           {[['Risk', 'Critical health · 48 / 100'], ['Cause', 'Warehouse shortage WH-01'], ['Impact', 'Pilot milestone at risk'], ['Recommendation', 'Reallocate & defend margin'], ['Action', rescueStatus], ['Outcome', completedAction ? 'Tracking result' : 'Pending execution']].map(([label, detail], i) => (
@@ -1412,7 +1443,8 @@ function OperationalPage({ title }) {
 
 // ─── App — root, manages login + shared state ──────────────────────────────────
 function App() {
-  const [role, setRole] = useState(() => localStorage.getItem(SK.ROLE) || null);
+  const { user, logout: logoutAuth } = useAuth();
+  const role = user?.role === 'MANAGER' ? 'manager' : user?.role === 'CUSTOMER' ? 'customer' : 'sales';
   const [activeTab, setActiveTab] = useState('quotes');
 
   // Shared quotation data — the single source of truth for all roles
@@ -1429,19 +1461,11 @@ function App() {
     localStorage.setItem(SK.QUOTES, JSON.stringify(quotes));
   }, [quotes]);
 
-  const login = (r) => {
-    setRole(r);
-    localStorage.setItem(SK.ROLE, r);
-    setActiveTab('quotes');
-  };
-
   const logout = () => {
-    setRole(null);
-    localStorage.removeItem(SK.ROLE);
+    logoutAuth();
   };
 
-  // Show login page if no role selected
-  if (!role) return <LoginPage onLogin={login} />;
+  if (!user) return null;
 
   return (
     <div className="app-shell">

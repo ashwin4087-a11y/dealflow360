@@ -376,6 +376,80 @@ export const getQuotation = async (prismaClient, id) => {
   return decorateQuotation(prismaClient, quotation);
 };
 
+export const previewQuotation = async (prismaClient, id, input) => {
+  const existing = await prismaClient.quotation.findUnique({
+    where: { id },
+    select: {
+      customerId: true,
+      subtotal: true,
+      discountPercent: true,
+      total: true,
+      marginAmount: true,
+      taxPercent: true,
+      items: { select: { productId: true, quantity: true, discountPercent: true } },
+    },
+  });
+  if (!existing) throw serviceError("Quotation not found", 404);
+
+  const requestedItems = Array.isArray(input?.items)
+    ? input.items
+    : existing.items.map((item) => ({
+        productId: item.productId,
+        quantity: input?.quantity ?? item.quantity,
+        discountPercent: input?.discount ?? item.discountPercent,
+      }));
+  const calculated = await calculateQuote(prismaClient, {
+    customerId: existing.customerId,
+    taxPercent: input?.taxPercent ?? existing.taxPercent,
+    items: requestedItems,
+  });
+  const risk = calculateBlendedDiscountRisk(calculated.items);
+  const approvalDecision = await evaluateApproval(prismaClient, risk);
+
+  const currentItems = existing.items.map((item) => ({
+    productId: item.productId,
+    quantity: item.quantity,
+    discountPercent: item.discountPercent,
+  }));
+  const sumQuantity = (items) => items.reduce((sum, item) => sum + Number(item.quantity), 0);
+  const scenario = {
+    subtotal: calculated.subtotal,
+    discountAmount: calculated.discountAmount,
+    taxPercent: calculated.taxPercent,
+    taxAmount: calculated.taxAmount,
+    total: calculated.total,
+    marginAmount: "0.00",
+    approvalRequired: approvalDecision.approvalRequired,
+    risk,
+    items: calculated.items,
+  };
+  return {
+    current: {
+      quantity: sumQuantity(currentItems),
+      discount: String(existing.discountPercent),
+      subtotal: String(existing.subtotal),
+      total: String(existing.total),
+      margin: String(existing.marginAmount),
+    },
+    scenario: {
+      quantity: sumQuantity(requestedItems),
+      discount: risk.blendedDiscountPercent,
+      subtotal: scenario.subtotal,
+      total: scenario.total,
+      margin: scenario.marginAmount,
+      paymentTerms: input?.paymentTerms ?? null,
+    },
+    impact: {
+      totalDelta: (Number(scenario.total) - Number(existing.total)).toFixed(2),
+      marginDelta: (Number(scenario.marginAmount) - Number(existing.marginAmount)).toFixed(2),
+      discountDelta: (Number(risk.blendedDiscountPercent) - Number(existing.discountPercent)).toFixed(2),
+      approvalRequired: approvalDecision.approvalRequired,
+      riskChange: { current: null, scenario: risk },
+    },
+    ...scenario,
+  };
+};
+
 export const updateQuotation = async (prismaClient, id, input) => {
   const existing = await prismaClient.quotation.findUnique({
     where: { id },

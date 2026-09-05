@@ -52,14 +52,19 @@ function App() {
             <Route path="quotations/new" element={<QuotationBuilderPage />} />
             <Route path="quotations/:id/edit" element={<QuotationBuilderPage />} />
             <Route path="quotations/:id" element={<QuotationDetailsPage />} />
-            <Route path="approvals" element={<ApprovalsPage />} />
+            <Route path="approvals" element={<ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "FINANCE"]} />}>
+              <Route index element={<ApprovalsPage />} />
+            </Route>
             <Route path="orders" element={<OrdersPage />} />
-            <Route path="negotiation" element={<NegotiationPage />} />
+            <Route path="negotiation" element={<ProtectedRoute allowedRoles={["ADMIN", "SALESPERSON", "MANAGER"]} />}>
+              <Route index element={<NegotiationPage />} />
+            </Route>
           </Route>
         </Route>
 
         <Route path="/customer/negotiations" element={<ProtectedRoute allowedRoles={["CUSTOMER"]} />}>
-          <Route element={<CustomerNegotiationPage />} />
+          <Route index element={<CustomerNegotiationPage />} />
+          <Route path=":negotiationId" element={<CustomerNegotiationPage />} />
         </Route>
 
         <Route path="/fulfillment" element={<ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
@@ -75,7 +80,7 @@ function App() {
           </Route>
         </Route>
 
-        <Route path="/intelligence" element={<ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
+        <Route path="/intelligence" element={<ProtectedRoute allowedRoles={["ADMIN", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
           <Route element={<SalesLayout />}>
             <Route index element={<IntelligencePage />} />
           </Route>

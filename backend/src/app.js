@@ -12,6 +12,7 @@ import { createFulfillmentRouter } from "./routes/fulfillmentRoutes.js";
 import { createBackorderRouter } from "./routes/backorderRoutes.js";
 import { createNegotiationRouter } from "./routes/negotiationRoutes.js";
 import { createOrderRouter } from "./routes/orderRoutes.js";
+import { createIntelligenceRouter } from "./routes/intelligenceRoutes.js";
 
 export const createApp = (prismaClient) => {
   const app = express();
@@ -43,6 +44,7 @@ export const createApp = (prismaClient) => {
   app.use("/api/backorders", createBackorderRouter(prismaClient));
   app.use("/api/orders", createOrderRouter(prismaClient));
   app.use("/api/negotiations", createNegotiationRouter(prismaClient));
+  app.use("/api", createIntelligenceRouter(prismaClient));
 
   app.use((error, _req, res, _next) => {
     const statusCode = error.statusCode || 500;

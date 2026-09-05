@@ -20,6 +20,8 @@ model User {
   quotations         Quotation[]
   requestedApprovals ApprovalRequest[] @relation("RequestedApprovals")
   assignedApprovals  ApprovalRequest[] @relation("AssignedApprovals")
+  createdNegotiations Negotiation[]     @relation("CreatedNegotiations")
+  negotiationEvents  NegotiationEvent[] @relation("NegotiationActors")
 }
 
 enum UserRole {
@@ -29,6 +31,18 @@ enum UserRole {
   FINANCE
   OPERATIONS
   CUSTOMER
+}
+
+enum QuotationStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  SENT
+  NEGOTIATION
+  ACCEPTED
+  CONVERTED
+  CANCELLED
 }
 
 model Customer {
@@ -44,6 +58,7 @@ model Customer {
   updatedAt       DateTime    @updatedAt
   user            User?
   quotations      Quotation[]
+  negotiations    Negotiation[]
 }
 
 model Product {
@@ -108,6 +123,7 @@ model Quotation {
   items            QuotationItem[]
   approvalRequests ApprovalRequest[]
   order            Order?
+  negotiations     Negotiation[]
 
   @@index([customerId])
   @@index([salespersonId])
@@ -178,6 +194,52 @@ model ApprovalRequest {
   @@index([requestedById])
   @@index([approverId])
   @@index([status])
+}
+
+model Negotiation {
+  id                            String            @id @default(cuid())
+  quotationId                   String
+  customerId                    String
+  createdBy                     String
+  status                        NegotiationStatus @default(OPEN)
+  customerRequestedDiscount     Decimal?
+  customerRequestedQuantity     Decimal?
+  customerRequestedPaymentTerms String?
+  customerMessage               String?
+  currentDiscount               Decimal
+  proposedDiscount              Decimal?
+  proposedQuantity              Decimal?
+  proposedPaymentTerms          String?
+  proposedMessage               String?
+  calculatedSubtotal            Decimal?
+  calculatedTotal               Decimal?
+  calculatedMargin              Decimal?
+  approvalRequired              Boolean           @default(false)
+  createdAt                     DateTime          @default(now())
+  updatedAt                     DateTime          @updatedAt
+  quotation                     Quotation         @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  customer                      Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  creator                       User              @relation("CreatedNegotiations", fields: [createdBy], references: [id], onDelete: Restrict)
+  events                        NegotiationEvent[]
+
+  @@index([quotationId])
+  @@index([customerId])
+  @@index([createdBy])
+  @@index([status])
+}
+
+model NegotiationEvent {
+  id            String      @id @default(cuid())
+  negotiationId String
+  actorId       String?
+  eventType     String
+  message       String?
+  createdAt     DateTime    @default(now())
+  negotiation   Negotiation @relation(fields: [negotiationId], references: [id], onDelete: Cascade)
+  actor         User?       @relation("NegotiationActors", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([negotiationId, createdAt])
+  @@index([actorId])
 }
 
 model Order {
@@ -286,17 +348,6 @@ enum ProductType {
   RECURRING
 }
 
-enum QuotationStatus {
-  DRAFT
-  PENDING_APPROVAL
-  APPROVED
-  REJECTED
-  SENT
-  NEGOTIATION
-  ACCEPTED
-  CONVERTED
-  CANCELLED
-}
 
 enum ApprovalStatus {
   PENDING
