@@ -1,0 +1,178 @@
+export const orderCatalog = [
+  {
+    id: 'ORD-1001',
+    customer: 'ABC Technologies',
+    status: 'Partially Fulfilled',
+    orderDate: 'Sep 05, 2026',
+    expectedDelivery: 'Sep 08',
+    fulfillment: 'Partially Fulfilled',
+    backordered: 20,
+    items: [
+      { product: 'Laptop Pro', type: 'One-time', ordered: 100, available: 80, allocated: 80, fulfilled: 80, backordered: 20 },
+      { product: 'Monitor Pro', type: 'One-time', ordered: 100, available: 80, allocated: 80, fulfilled: 80, backordered: 20 },
+      { product: 'Cloud Software', type: 'Recurring', ordered: 1, available: '—', allocated: '—', fulfilled: '—', backordered: '—' },
+    ],
+    warehouseAllocations: [
+      { warehouse: 'Warehouse A', location: 'Main', available: 60, allocated: 60, expectedDelivery: 'Sep 07' },
+      { warehouse: 'Warehouse B', location: 'East', available: 40, allocated: 20, expectedDelivery: 'Sep 08' },
+    ],
+    totalOrdered: 200,
+    fulfilled: 160,
+    backorderedQty: 40,
+    allocationStatus: 'Needs review',
+    recommendedAllocation: { A: 60, B: 40, C: 0 },
+    manualAllocation: { A: 60, B: 40, C: 0 },
+  },
+  {
+    id: 'ORD-1002',
+    customer: 'XYZ Industries',
+    status: 'Allocated',
+    orderDate: 'Sep 04, 2026',
+    expectedDelivery: 'Sep 07',
+    fulfillment: 'Allocated',
+    backordered: 0,
+    items: [
+      { product: 'Laptop Pro', type: 'One-time', ordered: 50, available: 50, allocated: 50, fulfilled: 0, backordered: 0 },
+    ],
+    totalOrdered: 50,
+    fulfilled: 0,
+    backorderedQty: 0,
+    allocationStatus: 'Ready to ship',
+    recommendedAllocation: { A: 30, B: 20, C: 0 },
+    manualAllocation: { A: 30, B: 20, C: 0 },
+  },
+  {
+    id: 'ORD-1003',
+    customer: 'PQR Systems',
+    status: 'Backordered',
+    orderDate: 'Sep 01, 2026',
+    expectedDelivery: 'Sep 12',
+    fulfillment: 'Backordered',
+    backordered: 30,
+    items: [
+      { product: 'Server Unit', type: 'One-time', ordered: 100, available: 70, allocated: 70, fulfilled: 70, backordered: 30 },
+    ],
+    totalOrdered: 100,
+    fulfilled: 70,
+    backorderedQty: 30,
+    allocationStatus: 'Waiting on stock',
+    recommendedAllocation: { A: 30, B: 40, C: 0 },
+    manualAllocation: { A: 30, B: 40, C: 0 },
+  },
+];
+
+export const backorderCatalog = [
+  {
+    id: 'BO-1001',
+    originalOrder: 'ORD-1001',
+    product: 'Laptop Pro',
+    quantity: 20,
+    status: 'Waiting for Stock',
+    expectedStock: 'Sep 09',
+    availableStock: 30,
+    message: '20 units can now be fulfilled.',
+    actionLabel: 'View',
+  },
+  {
+    id: 'BO-1002',
+    originalOrder: 'ORD-1005',
+    product: 'Monitor',
+    quantity: 8,
+    status: 'Ready to Fulfill',
+    expectedStock: 'Available',
+    availableStock: 8,
+    message: 'Stock is available for immediate fulfillment.',
+    actionLabel: 'Fulfill',
+  },
+  {
+    id: 'BO-1003',
+    originalOrder: 'ORD-1006',
+    product: 'Keyboard',
+    quantity: 12,
+    status: 'Waiting for Stock',
+    expectedStock: 'Sep 15',
+    availableStock: 0,
+    message: 'Awaiting incoming shipment from vendor.',
+    actionLabel: 'View',
+  },
+];
+
+export const invoiceCatalog = [
+  {
+    id: 'INV-1001',
+    customer: 'ABC Technologies',
+    order: 'ORD-1001',
+    amount: 580000,
+    issueDate: 'Sep 05',
+    dueDate: 'Oct 05',
+    status: 'Paid',
+    paymentStatus: 'Paid',
+    items: [
+      { name: 'Laptop Pro × 100', amount: 500000 },
+      { name: 'Monitor × 80', amount: 80000 },
+      { name: 'Cloud Software', amount: 10000 },
+    ],
+    tax: 60000,
+    total: 648000,
+    paymentHistory: [
+      { date: 'Sep 05', method: 'Bank Transfer', status: 'Paid', amount: '₹5,80,000' },
+      { date: 'Sep 06', method: 'Invoice Adjustment', status: 'Paid', amount: '₹0' },
+    ],
+  },
+  {
+    id: 'INV-1002',
+    customer: 'XYZ Industries',
+    order: 'ORD-1002',
+    amount: 240000,
+    issueDate: 'Sep 05',
+    dueDate: 'Oct 05',
+    status: 'Pending',
+    paymentStatus: 'Pending',
+    items: [
+      { name: 'Laptop Pro × 50', amount: 220000 },
+      { name: 'Support Plan', amount: 20000 },
+    ],
+    tax: 28000,
+    total: 268000,
+    paymentHistory: [
+      { date: 'Sep 05', method: 'Invoice Raised', status: 'Pending', amount: '₹0' },
+    ],
+  },
+];
+
+export const subscriptionCatalog = [
+  {
+    id: 'SUB-1001',
+    customer: 'ABC Technologies',
+    product: 'Cloud Software',
+    billing: 'Monthly',
+    amount: 10000,
+    nextBilling: 'Oct 01, 2026',
+    status: 'Active',
+    startDate: 'Sep 01, 2026',
+    paymentHistory: [
+      { invoice: 'INV-1001', date: 'Sep 05, 2026', amount: '₹10,000' },
+      { invoice: 'INV-1004', date: 'Oct 01, 2026', amount: '₹10,000' },
+    ],
+  },
+  {
+    id: 'SUB-1002',
+    customer: 'XYZ Industries',
+    product: 'Cloud Software',
+    billing: 'Yearly',
+    amount: 120000,
+    nextBilling: 'Sep 01, 2027',
+    status: 'Active',
+    startDate: 'Sep 01, 2026',
+    paymentHistory: [
+      { invoice: 'INV-1002', date: 'Sep 05, 2026', amount: '₹1,20,000' },
+    ],
+  },
+];
+
+export const fulfillmentOverview = {
+  ordersToFulfill: 24,
+  partiallyFulfilled: 8,
+  backorders: 5,
+  readyToShip: 18,
+};
