@@ -1,29 +1,46 @@
+import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import Layout from './components/layout/Layout';
-import DashboardPage from './pages/DashboardPage';
-import OrderFulfillmentDetailPage from './pages/OrderFulfillmentDetailPage';
-import WarehouseAllocationPage from './pages/WarehouseAllocationPage';
-import BackordersPage from './pages/BackordersPage';
-import InvoicesPage from './pages/InvoicesPage';
-import InvoiceDetailPage from './pages/InvoiceDetailPage';
-import SubscriptionsPage from './pages/SubscriptionsPage';
-import SubscriptionDetailPage from './pages/SubscriptionDetailPage';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/layout/ProtectedRoute';
+import SalesLayout from './components/layout/SalesLayout';
+
+// Sales Pages
+import LoginPage from './pages/sales/LoginPage';
+import DashboardPage from './pages/sales/DashboardPage';
+import CustomersPage from './pages/sales/CustomersPage';
+import QuotationBuilderPage from './pages/sales/QuotationBuilderPage';
+import QuotationDetailsPage from './pages/sales/QuotationDetailsPage';
+import ApprovalsPage from './pages/sales/ApprovalsPage';
+import OrdersPage from './pages/sales/OrdersPage';
 
 function App() {
   return (
-    <Layout>
+    <AuthProvider>
       <Routes>
-        <Route path="/" element={<Navigate to="/fulfillment" replace />} />
-        <Route path="/fulfillment" element={<DashboardPage />} />
-        <Route path="/fulfillment/orders/:orderId" element={<OrderFulfillmentDetailPage />} />
-        <Route path="/fulfillment/warehouse-allocation/:orderId" element={<WarehouseAllocationPage />} />
-        <Route path="/fulfillment/backorders" element={<BackordersPage />} />
-        <Route path="/fulfillment/invoices" element={<InvoicesPage />} />
-        <Route path="/fulfillment/invoices/:invoiceId" element={<InvoiceDetailPage />} />
-        <Route path="/fulfillment/subscriptions" element={<SubscriptionsPage />} />
-        <Route path="/fulfillment/subscriptions/:subscriptionId" element={<SubscriptionDetailPage />} />
+        {/* Public Routes */}
+        <Route path="/login" element={<LoginPage />} />
+        
+        {/* Core Sales (Member 1) Routes */}
+        <Route path="/sales" element={<ProtectedRoute />}>
+          <Route element={<SalesLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            
+            {/* Placeholders for next phases */}
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="customers" element={<CustomersPage />} />
+            <Route path="quotations/new" element={<QuotationBuilderPage />} />
+            <Route path="quotations/:id/edit" element={<QuotationBuilderPage />} />
+            <Route path="quotations/:id" element={<QuotationDetailsPage />} />
+            <Route path="approvals" element={<ApprovalsPage />} />
+            <Route path="orders" element={<OrdersPage />} />
+          </Route>
+        </Route>
+
+        {/* Fallback routing */}
+        <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
       </Routes>
-    </Layout>
+    </AuthProvider>
   );
 }
 
