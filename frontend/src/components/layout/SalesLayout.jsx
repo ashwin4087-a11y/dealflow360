@@ -45,8 +45,9 @@ export default function SalesLayout() {
       label: "Revenue Intelligence",
       items: [
         { label: "Deal Health Radar", path: "/intelligence", icon: Gauge },
-        { label: "Deal Rescue", path: "/intelligence", icon: Zap },
-        { label: "Customer Insights", path: "/intelligence", icon: Users },
+        { label: "Deal Health Radar", path: "/intelligence/health", icon: Gauge },
+        { label: "Deal Rescue", path: "/intelligence/rescue", icon: Zap },
+        { label: "Customer Insights", path: "/intelligence/customer", icon: Users },
         { label: "Negotiation Intelligence", path: "/sales/negotiation", icon: Target },
       ],
     },

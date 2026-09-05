@@ -34,5 +34,9 @@ export const quotationApi = {
     return apiFetch(`/quotations/${id}/send`, {
       method: "POST",
     });
-  }
+  },
+
+  convertQuotation: async (id) => {
+    return apiFetch(`/quotations/${id}/convert`, { method: "POST" });
+  },
 };

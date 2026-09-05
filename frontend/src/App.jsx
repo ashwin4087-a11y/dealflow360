@@ -9,6 +9,8 @@ import LoginPage from './pages/sales/LoginPage';
 import DashboardPage from './pages/sales/DashboardPage';
 import CustomersPage from './pages/sales/CustomersPage';
 import QuotationBuilderPage from './pages/sales/QuotationBuilderPage';
+import QuotationListPage from './pages/sales/QuotationListPage';
+            <Route path="quotations" element={<QuotationListPage />} />
 import QuotationDetailsPage from './pages/sales/QuotationDetailsPage';
 import ApprovalsPage from './pages/sales/ApprovalsPage';
 import OrdersPage from './pages/sales/OrdersPage';
@@ -58,6 +60,7 @@ function App() {
             <Route path="orders" element={<OrdersPage />} />
             <Route path="negotiation" element={<ProtectedRoute allowedRoles={["ADMIN", "SALESPERSON", "MANAGER"]} />}>
               <Route index element={<NegotiationPage />} />
+              <Route path=":negotiationId" element={<NegotiationPage />} />
             </Route>
           </Route>
         </Route>
@@ -81,9 +84,11 @@ function App() {
         </Route>
 
         <Route path="/intelligence" element={<ProtectedRoute allowedRoles={["ADMIN", "SALESPERSON", "MANAGER", "FINANCE", "OPERATIONS"]} />}>
-          <Route element={<SalesLayout />}>
-            <Route index element={<IntelligencePage />} />
-          </Route>
+          <Route index element={<IntelligencePage />} />
+          <Route path="health" element={<IntelligencePage initialTab="health" />} />
+          <Route path="rescue" element={<IntelligencePage initialTab="rescue" />} />
+          <Route path="customer" element={<IntelligencePage initialTab="customer" />} />
+          <Route path="negotiation" element={<IntelligencePage initialTab="negotiation" />} />
         </Route>
 
         {/* Fallback routing */}

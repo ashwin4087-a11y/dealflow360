@@ -41,22 +41,13 @@ export default function QuotationDetailsPage() {
 
   const handleConvert = async () => {
     try {
-      // Assuming we have this in the api
-      const response = await fetch(`http://localhost:5000/api/quotations/${id}/convert`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('dealflow_token')}`
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        alert(`Order created! Order Number: ${data.data.orderNumber}`);
+      const response = await quotationApi.convertQuotation(id);
+      if (response.success) {
+        alert(`Order created! Order Number: ${response.data.orderNumber}`);
         navigate('/sales/orders');
-      } else {
-        alert(data.error);
       }
-    } catch (err) {
-      alert("Failed to convert to order");
+    } catch (error) {
+      alert(error.message || "Failed to convert to order");
     }
   };
 

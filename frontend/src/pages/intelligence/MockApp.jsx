@@ -1441,11 +1441,11 @@ function OperationalPage({ title }) {
   );
 }
 
-// ─── App — root, manages login + shared state ──────────────────────────────────
-function App() {
+// ─── App — root, manages the shared intelligence shell ────────────────────────
+function App({ initialTab = 'health' }) {
   const { user, logout: logoutAuth } = useAuth();
   const role = user?.role === 'MANAGER' ? 'manager' : user?.role === 'CUSTOMER' ? 'customer' : 'sales';
-  const [activeTab, setActiveTab] = useState('quotes');
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   // Shared quotation data — the single source of truth for all roles
   const [quotes, setQuotes] = useState(() => {
