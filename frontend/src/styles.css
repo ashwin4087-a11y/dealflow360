@@ -8,7 +8,8 @@ button { cursor: pointer; }
 .app-shell { min-height: 100vh; }
 .sidebar { position: fixed; z-index: 20; inset: 0 auto 0 0; width: 248px; display: flex; flex-direction: column; background: #fff; border-right: 1px solid var(--border); }
 .brand { height: 68px; display: flex; align-items: center; gap: 10px; padding: 0 18px; border-bottom: 1px solid var(--border); }
-.brand-mark { display: grid; place-items: center; width: 32px; height: 32px; color: #fff; background: var(--primary); border-radius: 7px; }
+.brand-mark { display: grid; place-items: center; width: 36px; height: 36px; overflow: hidden; border-radius: 5%; background: transparent; }
+.brand-logo { display: block; width: 36px; height: 36px; border-radius: 5%; object-fit: contain; mix-blend-mode: multiply; }
 .brand strong, .profile strong { display: block; font-size: 14px; letter-spacing: -.02em; }
 .brand small, .profile small { display: block; margin-top: 4px; color: #94a3b8; font-size: 9px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 .close-nav, .mobile-menu { display: none !important; }
@@ -170,3 +171,16 @@ html, body, #root { max-width: 100%; overflow-x: hidden; }
 	.action-row > div { min-width: calc(100% - 42px); }
 	.action-row .small-button { margin-left: 33px; }
 }
+
+.negotiation-overview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+.negotiation-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.negotiation-account { display: flex; align-items: center; gap: 10px; padding: 17px 0; }.negotiation-account strong, .negotiation-account small { display: block; }.negotiation-account strong { font-size: 14px; }.negotiation-account small { margin-top: 5px; color: var(--muted); font-size: 10px; }
+.negotiation-facts, .commercial-grid, .recommendation-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding-top: 14px; border-top: 1px solid #edf0ee; }.negotiation-facts small, .commercial-grid small, .recommendation-facts small { display: block; color: var(--muted); font-size: 9px; }.negotiation-facts strong, .commercial-grid strong, .recommendation-facts strong { display: block; margin-top: 6px; color: var(--ink); font-size: 12px; }
+.position-block { padding: 17px 0 13px; }.position-block span, .position-block strong { display: block; }.position-block span { color: var(--muted); font-size: 10px; font-weight: 600; text-transform: uppercase; }.position-block strong { margin-top: 7px; font-size: 15px; line-height: 1.4; }.position-block p { margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.commercial-grid { grid-template-columns: repeat(2, 1fr); border-top: 0; padding-top: 17px; }.commercial-grid > div { padding: 10px; border: 1px solid #edf0ee; border-radius: 4px; background: #fafbf9; }
+.recommendation-callout { padding: 15px; margin: 17px 0 14px; border: 1px solid #c9deda; border-radius: 4px; background: #f3f9f7; }.recommendation-callout span, .recommendation-callout strong { display: block; }.recommendation-callout span { color: #347566; font-size: 10px; font-weight: 600; text-transform: uppercase; }.recommendation-callout strong { margin-top: 7px; color: var(--ink); font-size: 15px; line-height: 1.4; }.recommendation-callout p { margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }.recommendation-facts { grid-template-columns: repeat(3, 1fr); }.success-text { color: #247161 !important; }
+.negotiation-timeline { display: grid; gap: 0; padding-top: 15px; }.negotiation-timeline > div { position: relative; display: flex; gap: 12px; min-height: 59px; padding: 0 0 14px; }.negotiation-timeline > div:not(:last-child)::before { position: absolute; top: 24px; bottom: 0; left: 11px; width: 1px; content: ''; background: #c9deda; }.negotiation-timeline b { z-index: 1; display: grid; flex: 0 0 auto; place-items: center; width: 23px; height: 23px; border-radius: 50%; color: #fff; background: var(--primary); font-size: 10px; }.negotiation-timeline span { display: block; color: var(--ink); font-size: 12px; font-weight: 600; }.negotiation-timeline small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; font-weight: 400; line-height: 1.45; }
+.recommendation-reason { max-width: 900px; margin: 17px 0; color: var(--muted); font-size: 13px; line-height: 1.65; }.negotiation-actions { display: flex; flex-wrap: wrap; gap: 8px; }.negotiation-feedback { display: flex; align-items: center; gap: 7px; padding: 10px 12px; margin: -8px 0 20px; border: 1px solid #b8dcd2; border-radius: 4px; color: #247161; background: #edf8f4; font-size: 12px; font-weight: 600; }
+@media (max-width: 1100px) { .negotiation-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 780px) { .negotiation-columns { grid-template-columns: 1fr; }.negotiation-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }.negotiation-facts, .recommendation-facts { grid-template-columns: 1fr; }.commercial-grid { grid-template-columns: 1fr; }.negotiation-actions .primary-button, .negotiation-actions .secondary-button { flex: 1 1 180px; } }
+@media (max-width: 480px) { .negotiation-overview { grid-template-columns: 1fr; }.negotiation-actions .primary-button, .negotiation-actions .secondary-button { width: 100%; } }
