@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Shared schema foundation. Feature-specific models will be added together
+// so all three team members use the same IDs and relationships.
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      UserRole @default(SALESPERSON)
+  createdAt DateTime @default(now())
+}
+
+enum UserRole {
+  ADMIN
+  SALESPERSON
+  MANAGER
+  FINANCE
+  OPERATIONS
+  CUSTOMER
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  tier      String   @default("STANDARD")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  name      String
+  sku       String   @unique
+  price     Decimal  @db.Decimal(12, 2)
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
