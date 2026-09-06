@@ -58,4 +58,27 @@ export const createApprovalController = (prismaClient) => ({
       next(error);
     }
   },
+  getRules: async (req, res, next) => {
+    try {
+      const rules = await prismaClient.approvalRule.findMany({ orderBy: { priority: "desc" } });
+      res.json({ success: true, data: rules });
+    } catch (error) { next(error); }
+  },
+  saveRules: async (req, res, next) => {
+    try {
+      const { rules } = req.body;
+      await prismaClient.$transaction(async (tx) => {
+        await tx.approvalRule.deleteMany({});
+        if (rules && rules.length > 0) {
+          const cleanRules = rules.map(r => {
+            const { id, createdAt, updatedAt, ...rest } = r;
+            return rest;
+          });
+          await tx.approvalRule.createMany({ data: cleanRules });
+        }
+      });
+      const updated = await prismaClient.approvalRule.findMany({ orderBy: { priority: "desc" } });
+      res.json({ success: true, data: updated });
+    } catch (error) { next(error); }
+  },
 });

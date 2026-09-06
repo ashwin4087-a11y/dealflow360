@@ -10,6 +10,8 @@ export const createApprovalRouter = (prismaClient) => {
   const authorize = [requireAuth(), requireRole(...APPROVAL_ROLES)];
 
   router.get("/", ...authorize, controller.list);
+  router.get("/rules", ...authorize, controller.getRules);
+  router.post("/rules", ...authorize, controller.saveRules);
   router.get("/:id", requireAuth(), controller.get);
   router.post("/:id/approve", ...authorize, controller.approve);
   router.post("/:id/reject", ...authorize, controller.reject);

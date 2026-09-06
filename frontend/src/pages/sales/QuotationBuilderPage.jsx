@@ -115,20 +115,35 @@ export default function QuotationBuilderPage() {
     }
   };
 
+  const [applyError, setApplyError] = useState("");
   const applyScenario = async (scenarioItems) => {
     setSaving(true);
     setError("");
+    setApplyError("");
     try {
       const response = await quotationApi.updateQuotation(id, scenarioItems, customer.id);
-      setQuotation(response.data);
-      setItems(response.data.items.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        discountPercent: item.discountPercent || 0,
-      })));
-      setSimulatorOpen(false);
+      if (response.success) {
+        setQuotation(response.data);
+        setItems(response.data.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          discountPercent: item.discountPercent || 0,
+        })));
+        setSimulatorOpen(false);
+        // Re-fetch to ensure the page shows the latest state
+        const refreshed = await quotationApi.getQuotationById(id);
+        if (refreshed.success) {
+          setQuotation(refreshed.data);
+          setItems(refreshed.data.items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            discountPercent: item.discountPercent || 0,
+          })));
+        }
+      }
     } catch (requestError) {
-      setError(requestError.message || "Failed to apply scenario");
+      // Show error inside simulator modal, don't close it
+      setApplyError(requestError.message || "Failed to apply scenario");
     } finally {
       setSaving(false);
     }
@@ -321,8 +336,9 @@ export default function QuotationBuilderPage() {
             (user?.role === "FINANCE" && quotation.status === "PENDING_APPROVAL")
           }
           userRole={user?.role}
+          applyError={applyError}
           onApply={applyScenario}
-          onClose={() => setSimulatorOpen(false)}
+          onClose={() => { setSimulatorOpen(false); setApplyError(""); }}
         />
       )}
     </>

@@ -32,7 +32,7 @@ export default function QuotationDetailsPage() {
     try {
       const res = await quotationApi.sendQuotation(id);
       if (res.success) {
-        fetchDetails(); // reload to get new status
+        navigate('/sales/negotiation');
       }
     } catch (err) {
       alert(err.message || "Failed to send quotation");

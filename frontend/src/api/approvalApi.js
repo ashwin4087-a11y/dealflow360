@@ -17,5 +17,14 @@ export const approvalApi = {
       method: "POST",
       body: JSON.stringify({ notes }),
     });
+  },
+  getRules: async () => {
+    return apiFetch("/approvals/rules");
+  },
+  saveRules: async (rules) => {
+    return apiFetch("/approvals/rules", {
+      method: "POST",
+      body: JSON.stringify({ rules }),
+    });
   }
 };

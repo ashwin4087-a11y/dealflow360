@@ -47,12 +47,13 @@ const valueChipStyle = {
   color: '#2563eb',
 };
 
-export default function WhatIfSimulator({ quotation, canApply, userRole, onApply, onClose }) {
+export default function WhatIfSimulator({ quotation, canApply, userRole, applyError, onApply, onClose }) {
   const [scenarioItems, setScenarioItems] = useState(() => itemsFor(quotation.items || []));
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [focusedInput, setFocusedInput] = useState(null);
+  const [applying, setApplying] = useState(false);
   const debounceRef = useRef(null);
 
   useEffect(() => {
@@ -125,6 +126,8 @@ export default function WhatIfSimulator({ quotation, canApply, userRole, onApply
       return "Finance can only apply scenarios to quotations pending approval.";
     if (userRole === "CUSTOMER")
       return "View-only mode: customers cannot modify quotation scenarios.";
+    if (userRole === "OPERATIONS")
+      return "View-only mode: operations cannot modify quotation scenarios.";
     return "You do not have permission to apply scenarios to this quotation.";
   };
 
@@ -178,6 +181,7 @@ export default function WhatIfSimulator({ quotation, canApply, userRole, onApply
             );
           })}
           {error && <div className="toast" style={{ position: "relative", top: 0, right: 0, transform: "none", width: "100%" }}><AlertTriangle size={16} />{error}</div>}
+          {applyError && <div className="toast" style={{ position: "relative", top: 0, right: 0, transform: "none", width: "100%", backgroundColor: '#fef2f2', color: '#b91c1c', border: '1px solid #f87171' }}><AlertTriangle size={16} />{applyError}</div>}
           {loading && <p className="simulator-note" style={{ color: '#3b82f6' }}>⏳ Recalculating with backend rules...</p>}
           {preview && !loading && (
             <>
@@ -203,7 +207,7 @@ export default function WhatIfSimulator({ quotation, canApply, userRole, onApply
           <div className="simulator-actions">
             <button className="secondary-button" type="button" onClick={reset}><RotateCcw size={14} /> Reset</button>
             <button className="secondary-button" type="button" onClick={onClose}>Cancel</button>
-            {canApply && <button className="primary-button" type="button" disabled={loading || Boolean(error)} onClick={() => onApply(scenarioItems)}>Apply Scenario</button>}
+            {canApply && <button className="primary-button" type="button" disabled={loading || applying || Boolean(error)} onClick={() => { setApplying(true); onApply(scenarioItems); }}>{applying ? "Applying..." : "Apply Scenario"}</button>}
           </div>
         </div>
       </section>

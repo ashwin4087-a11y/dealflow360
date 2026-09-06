@@ -1,8 +1,8 @@
 const API_BASE = "http://localhost:5000/api";
 
-export const getAuthToken = () => localStorage.getItem("dealflow_token");
-export const setAuthToken = (token) => localStorage.setItem("dealflow_token", token);
-export const removeAuthToken = () => localStorage.removeItem("dealflow_token");
+export const getAuthToken = () => sessionStorage.getItem("dealflow_token");
+export const setAuthToken = (token) => sessionStorage.setItem("dealflow_token", token);
+export const removeAuthToken = () => sessionStorage.removeItem("dealflow_token");
 
 export const apiFetch = async (endpoint, options = {}) => {
   const token = getAuthToken();

@@ -45,6 +45,7 @@ function RoleAwareRedirect() {
   if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role === "CUSTOMER") return <Navigate to="/customer/negotiations" replace />;
+  if (user?.role === "OPERATIONS") return <Navigate to="/fulfillment" replace />;
   return <Navigate to="/sales/dashboard" replace />;
 }
 

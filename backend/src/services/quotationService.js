@@ -457,8 +457,9 @@ export const updateQuotation = async (prismaClient, id, input) => {
     select: { id: true, status: true, salespersonId: true },
   });
   if (!existing) throw serviceError("Quotation not found", 404);
-  if (existing.status !== "DRAFT")
-    throw serviceError("Only DRAFT quotations can be updated", 409);
+  const editableStatuses = ["DRAFT", "PENDING_APPROVAL", "APPROVED", "SENT"];
+  if (!editableStatuses.includes(existing.status))
+    throw serviceError(`Quotation in ${existing.status} status cannot be updated`, 409);
   const calculated = await calculateQuote(prismaClient, input);
   const calculatedRisk = calculateBlendedDiscountRisk(calculated.items);
   const approvalDecision = await evaluateApproval(prismaClient, calculatedRisk);

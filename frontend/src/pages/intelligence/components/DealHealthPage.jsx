@@ -3,11 +3,13 @@ import { Gauge, Sparkles, AlertTriangle } from 'lucide-react';
 import { intelligenceApi } from '../../../api/intelligenceApi';
 import { PageHeader, Metric, Section, Signal, ActionRow } from './SharedPrimitives';
 import { HealthOverview, RiskTable } from './HealthComponents';
+import TriggerRulesModal from './TriggerRulesModal';
 
 export default function DealHealthPage({ onNavigate }) {
   const [health, setHealth] = useState([]);
   const [healthError, setHealthError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -38,8 +40,10 @@ export default function DealHealthPage({ onNavigate }) {
         title="Deal Health Intelligence"
         description="AI-driven risk detection, margin erosion alerts, velocity tracking, and automated rescue actions across active enterprise revenue pipelines."
         action="Configure trigger rules"
-        onAction={() => onNavigate('rules')}
+        onAction={() => setShowRules(true)}
       />
+      
+      {showRules && <TriggerRulesModal onClose={() => setShowRules(false)} />}
       
       <div className="metrics">
         <Metric label="Healthy Deals"      value={`${count('HEALTHY')} Deals`}   detail="Backend-evaluated active quotations"                  badge="Live" />

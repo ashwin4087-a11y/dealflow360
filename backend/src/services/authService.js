@@ -7,6 +7,7 @@ const DEMO_USERS = {
   "customer@dealflow360.com": { id: "seed-user-customer", name: "Vikram Singh", email: "customer@dealflow360.com", role: "CUSTOMER", password: "demo123" },
   "admin@dealflow360.com": { id: "seed-user-admin", name: "Admin User", email: "admin@dealflow360.com", role: "ADMIN", password: "demo123" },
   "finance@dealflow360.com": { id: "seed-user-finance", name: "Amit Verma", email: "finance@dealflow360.com", role: "FINANCE", password: "demo123" },
+  "ops@dealflow360.com": { id: "seed-user-ops", name: "Operations Team", email: "ops@dealflow360.com", role: "OPERATIONS", password: "demo123" },
 };
 
 const invalidCredentialsError = () => {

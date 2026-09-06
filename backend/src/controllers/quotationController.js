@@ -59,9 +59,15 @@ export const createQuotationController = (prismaClient) => ({
   },
   send: async (req, res, next) => {
     try {
+      const data = await sendQuotation(prismaClient, req.params.id);
+      
+      // Auto-create negotiation so the customer can see it
+      const { createNegotiation } = await import("../services/negotiationService.js");
+      await createNegotiation(prismaClient, req.user, req.params.id).catch(e => console.error("Failed to auto-create negotiation:", e));
+
       res.json({
         success: true,
-        data: await sendQuotation(prismaClient, req.params.id),
+        data,
       });
     } catch (error) {
       next(error);

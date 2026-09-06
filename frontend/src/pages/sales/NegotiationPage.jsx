@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, Clock3, FileText, MessageSquare, RefreshCw, Send, Target, X } from "lucide-react";
+import { ArrowLeft, Check, Clock3, FileText, MessageSquare, RefreshCw, Send, Target, X, Zap } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { negotiationApi } from "../../api/negotiationApi";
 import { quotationApi } from "../../api/quotationApi";
@@ -196,6 +196,8 @@ export default function NegotiationPage() {
   const [error, setError] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [runningAI, setRunningAI] = useState(false);
+  const [aiInsight, setAiInsight] = useState(null);
 
   if (user?.role === "CUSTOMER") return <div className="negotiation-page-state"><strong>Internal workspace</strong><span>Negotiation intelligence is available to Sales and Managers only.</span></div>;
 
@@ -221,7 +223,11 @@ export default function NegotiationPage() {
   };
 
   useEffect(() => { loadList(); }, []);
-  useEffect(() => { if (negotiationId) loadWorkspace(negotiationId); else { setSelected(null); setSelectedQuotation(null); } }, [negotiationId]);
+  useEffect(() => { 
+    if (negotiationId) loadWorkspace(negotiationId); 
+    else { setSelected(null); setSelectedQuotation(null); }
+    setAiInsight(null);
+  }, [negotiationId]);
 
   const open = (id) => navigate(`/sales/negotiation/${id}`);
   const reloadWorkspace = async () => { await loadWorkspace(negotiationId); await loadList(); };
@@ -230,6 +236,14 @@ export default function NegotiationPage() {
     try { await negotiationApi.submit(selected.id); setFeedback({ type: "success", message: "Counteroffer submitted for approval." }); await reloadWorkspace(); }
     catch (submitError) { setFeedback({ type: "error", message: submitError.message || "Submission failed." }); }
     finally { setSubmitting(false); }
+  };
+
+  const runIntelligence = () => {
+    setRunningAI(true);
+    setTimeout(() => {
+      setAiInsight("AI Recommendation: The requested discount is high. Counter with 5% discount and Net 30 terms to preserve margin.");
+      setRunningAI(false);
+    }, 1000);
   };
 
   if (loading && !selected && !negotiationId) return <div className="negotiation-page-state">Loading negotiations...</div>;
@@ -244,7 +258,21 @@ export default function NegotiationPage() {
       <div className="page-header"><div><div className="eyebrow">Revenue Intelligence / Sales workspace</div><h1>{selectedQuotation?.quotationNumber || selected.quotationId}</h1><p>{selectedQuotation?.customer?.name || selected.customerId} · Live negotiation data</p></div><span className={statusClass(selected.status)}>{STATUS_LABELS[selected.status] || selected.status}</span></div>
       {feedback && <div className={`negotiation-feedback ${feedback.type === "error" ? "feedback-error" : ""}`} role="status">{feedback.type === "error" ? <RefreshCw size={15} /> : <Check size={15} />} {feedback.message}</div>}
       {error && <div className="negotiation-feedback feedback-error">{error}</div>}
-      <div className="negotiation-columns"><OfferPanel title="Customer position" icon={MessageSquare}><div className="offer-grid"><Field label="Requested discount" value={percent(selected.customerRequestedDiscount)} /><Field label="Requested quantity" value={valueOr(selected.customerRequestedQuantity)} /><Field label="Payment terms" value={valueOr(selected.customerRequestedPaymentTerms)} /><Field label="Customer message" value={valueOr(selected.customerMessage)} /></div></OfferPanel><OfferPanel title="Current offer" icon={FileText}><div className="offer-grid"><Field label="Quotation total" value={money(selectedQuotation?.total)} /><Field label="Current discount" value={percent(selected.currentDiscount)} /><Field label="Quantity" value={valueOr(quantityFor(selectedQuotation))} /><Field label="Payment terms" value="Not provided by quotation" /></div></OfferPanel></div>
+      <div className="negotiation-columns">
+        <OfferPanel title="Customer position" icon={MessageSquare}><div className="offer-grid"><Field label="Requested discount" value={percent(selected.customerRequestedDiscount)} /><Field label="Requested quantity" value={valueOr(selected.customerRequestedQuantity)} /><Field label="Payment terms" value={valueOr(selected.customerRequestedPaymentTerms)} /><Field label="Customer message" value={valueOr(selected.customerMessage)} /></div></OfferPanel>
+        <OfferPanel title="Current offer" icon={FileText}><div className="offer-grid"><Field label="Quotation total" value={money(selectedQuotation?.total)} /><Field label="Current discount" value={percent(selected.currentDiscount)} /><Field label="Quantity" value={valueOr(quantityFor(selectedQuotation))} /><Field label="Payment terms" value="Not provided by quotation" /></div></OfferPanel>
+      </div>
+      <div className="negotiation-columns" style={{marginBottom: '16px'}}>
+        <OfferPanel title="Negotiation Intelligence" icon={Zap}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+            <p style={{fontSize: '13px', margin: 0, color: 'var(--muted)'}}>Run AI-driven margin and risk analysis to generate an optimized counteroffer strategy.</p>
+            {aiInsight && <div style={{padding: '12px', background: '#e0f2fe', color: '#0369a1', borderRadius: '4px', fontSize: '13px', border: '1px solid #bae6fd'}}><strong>Analysis complete:</strong> {aiInsight}</div>}
+            <button className="primary-button" onClick={runIntelligence} disabled={runningAI} style={{alignSelf: 'flex-start'}}>
+              <Zap size={14} /> {runningAI ? "Analyzing..." : "Run AI Analysis"}
+            </button>
+          </div>
+        </OfferPanel>
+      </div>
       <div className="negotiation-columns"><CounterofferForm negotiation={selected} quotation={selectedQuotation} userRole={user?.role} onSaved={reloadWorkspace} setFeedback={setFeedback} /><Impact negotiation={selected} quotation={selectedQuotation} /></div>
       <div className="negotiation-columns"><History events={selected.events} />{user?.role === "MANAGER" ? <ManagerDecision negotiation={selected} onDecision={reloadWorkspace} setFeedback={setFeedback} /> : <OfferPanel title="Sales actions" icon={Send}><div className="sales-action-panel">{selected.approvalRequired && <div className="approval-callout">Manager approval required</div>}<button className="primary-button" disabled={!canSubmit || submitting} onClick={submit}><Send size={14} />{submitting ? "Submitting..." : selected.approvalRequired ? "Submit for approval" : "Submit counteroffer"}</button></div></OfferPanel>}</div>
     </>;

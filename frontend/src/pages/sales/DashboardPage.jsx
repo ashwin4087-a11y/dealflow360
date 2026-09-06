@@ -47,7 +47,7 @@ export default function DashboardPage() {
         customerApi.getCustomers(),
         productApi.getProducts(),
         ["ADMIN", "MANAGER", "FINANCE"].includes(user?.role)
-          ? approvalApi.getPendingApprovals()
+          ? approvalApi.getPendingApprovals().catch(() => ({ success: true, data: [] }))
           : Promise.resolve({ data: [] }),
       ]);
       setQuotations(quotationResponse.data || []);

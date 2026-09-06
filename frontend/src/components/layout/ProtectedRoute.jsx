@@ -11,8 +11,11 @@ export default function ProtectedRoute({ allowedRoles, redirectTo }) {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (allowedRoles?.length && !allowedRoles.includes(user?.role)) {
-    // Use role-aware default redirect when no explicit redirectTo is given
-    const fallback = redirectTo || (user?.role === "CUSTOMER" ? "/customer/negotiations" : "/sales/dashboard");
+    const fallback = redirectTo || (
+      user?.role === "CUSTOMER" ? "/customer/negotiations" : 
+      user?.role === "OPERATIONS" ? "/fulfillment" : 
+      "/sales/dashboard"
+    );
     return <Navigate to={fallback} replace />;
   }
   return <Outlet />;
